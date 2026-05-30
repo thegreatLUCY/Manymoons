@@ -700,6 +700,17 @@ function renderMoon(canvas, p){
   }
   ctx.globalCompositeOperation='source-over';
   ctx.restore();
+
+  // rim glow — keeps the disk visible at every phase, even new moon.
+  // A faint cool edge at the very limb so the circle shape is always readable
+  // against the dark sky. Earthshine handles the interior; this handles the edge.
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI);
+  const rimG = ctx.createRadialGradient(cx, cy, R*0.82, cx, cy, R);
+  rimG.addColorStop(0, 'rgba(130,150,210,0)');
+  rimG.addColorStop(1, 'rgba(130,150,210,0.22)');
+  ctx.fillStyle = rimG; ctx.fill();
+  ctx.restore();
 }
 // Tonight's big moon (forceP used for phase testing)
 function drawMoon(forceP){
