@@ -4,9 +4,9 @@
   <em>A quiet companion for the moon overhead — tonight's phase, and the stories the world has told about it.</em>
 </p>
 
-| Tonight | Your birth moon | Your Moons | The Library |
+| Blood Moon | Your birth moon | Your Moons | The Library |
 |:--:|:--:|:--:|:--:|
-| <img src="screenshots/tonight.png" width="200" alt="Tonight — the current phase, rendered from astronomical math" /> | <img src="screenshots/birth.png" width="200" alt="The moon you were born under" /> | <img src="screenshots/collection.png" width="200" alt="Your Moons — the nights you have pressed" /> | <img src="screenshots/library.png" width="200" alt="The Library — the eight phases and their lore" /> |
+| <img src="screenshots/blood-moon.png" width="200" alt="Blood Moon — total lunar eclipse, every sunrise and sunset at once" /> | <img src="screenshots/birth.png" width="200" alt="The moon you were born under" /> | <img src="screenshots/collection.png" width="200" alt="Your Moons — the nights you have pressed" /> | <img src="screenshots/library.png" width="200" alt="The Library — the eight phases and their lore" /> |
 
 ---
 
