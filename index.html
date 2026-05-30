@@ -547,6 +547,51 @@ const NAMED_FULL = {
   "Cold Moon":      {lead:"The Cold Moon.", body:"December’s full moon, riding high and long through the year’s deepest dark — the cold moon of the longest nights.", credit:"December · almanac moon names"},
 };
 
+// Rare and special moons — not a phase but an event or calendar anomaly.
+// Rendered with their own logic in buildLibrary.
+const SPECIAL_MOONS = [
+  {
+    name: 'Blood Moon',
+    type: 'blood',
+    meaning: "Earth's shadow, and the light of every horizon.",
+    lore: {
+      lead: "When Earth passes between sun and moon,",
+      body: "its shadow swallows the full face — and yet the moon does not go dark. Sunlight bending around Earth's rim, filtered through every dawn and every dusk at once, washes it in red. A blood moon is every sunrise and sunset on Earth, seen from the moon in a single moment.",
+      credit: "Total lunar eclipse",
+    },
+  },
+  {
+    name: 'Blue Moon',
+    type: 'blue',
+    meaning: "Rare only in the counting.",
+    lore: {
+      lead: "The second full moon in a calendar month —",
+      body: "which comes around, on average, once every two and a half years. A calendar accident: the moon ignores our months entirely. The phrase 'once in a blue moon' is older than the modern definition, and the moon itself looks no different — just white and full, exceptional only to those who count.",
+      credit: "Blue moon",
+    },
+  },
+  {
+    name: 'Supermoon',
+    type: 'super',
+    meaning: "The moon at its nearest, the tides at their highest.",
+    lore: {
+      lead: "At perigee, the moon swings a little closer —",
+      body: "some fourteen percent larger in the sky, thirty percent brighter, the full moon at its fullest. The ocean feels it; the tides run higher than usual. To the naked eye it looks much as always — the sky has no ruler — but those who know, look for it.",
+      credit: "Supermoon · perigee full moon",
+    },
+  },
+  {
+    name: 'Black Moon',
+    type: 'black',
+    meaning: "Twice dark in a single month.",
+    lore: {
+      lead: "The second new moon in a calendar month —",
+      body: "the dark mirror of the blue moon. No moonlight at all; the sky given entirely to stars. Some traditions call this a time of turning inward — the moon withholding itself, keeping its own counsel before beginning again.",
+      credit: "Black moon",
+    },
+  },
+];
+
 // Integer day-of-cycle (0–29), stable per calendar date. Because it advances
 // by one each night, indexing a phase's deck by it walks sequentially through
 // the cards — so no card repeats within a single lunar cycle.
@@ -744,6 +789,86 @@ function pressMoon(){
   saveStore(store);
 }
 
+/* ---------------- blood moon rendering ----------------
+   Total lunar eclipse: the whole disk lit by sunlight refracted through
+   Earth's atmosphere — every sunrise and sunset at once. Deepest umbra
+   at centre (darkest maroon); shallower umbra at the limb (bright amber).
+   Same maria/mottling as the main renderer so the surface still reads.  */
+function renderBloodMoon(canvas){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  const px  = Math.max(8, Math.round(css * dpr));
+  canvas.width = px; canvas.height = px;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,px,px);
+
+  const cx = px/2, cy = px/2, R = px*0.47;
+  const detail = css >= 90;
+  const invR = 1/R;
+
+  const img = ctx.createImageData(px,px), d = img.data;
+  for (let y=0; y<px; y++){
+    const ndy = (y+0.5-cy)*invR;
+    for (let x=0; x<px; x++){
+      const i = (y*px+x)<<2;
+      const ndx = (x+0.5-cx)*invR;
+      const r2  = ndx*ndx + ndy*ndy;
+      if (r2 >= 1){ d[i+3]=0; continue; }
+      const rr = Math.sqrt(r2);
+      const z  = Math.sqrt(1-r2);
+
+      // albedo — same maria pattern as the main moon; dark seas show through the red
+      let alb = 1;
+      for (let m=0; m<_MARIA.length; m++){
+        const M=_MARIA[m], qx=ndx-M[0], qy=ndy-M[1], q2=qx*qx+qy*qy;
+        if (q2<M[2]) alb -= M[3]*0.40*(1-q2/M[2]);
+      }
+      if (detail) alb *= 0.90 + 0.14*_vnoise(ndx*8+12, ndy*8+7);
+      if (alb<0.16) alb=0.16;
+
+      // eclipse illumination: centre = deepest umbra (darkest maroon),
+      // limb = shallower umbra (bright amber) — double-smooth so most
+      // of the disk looks dark and the orange only blooms near the edge.
+      const brightFac = _smooth(_smooth(rr));
+
+      // colour: maroon-crimson → amber-orange (refracted atmosphere light)
+      const oR = (46  + 169 * brightFac) * alb;
+      const oG = (7   + 81  * brightFac) * alb;
+      const oB = (4   + 19  * brightFac) * alb;
+
+      // slight limb-darkening at the physical disk edge
+      const ld = 0.70 + 0.30 * z;
+
+      const a = rr>0.985 ? 255*_clamp((1-rr)/0.015,0,1) : 255;
+      d[i]   = oR * ld;
+      d[i+1] = oG * ld;
+      d[i+2] = oB * ld;
+      d[i+3] = a;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // warm amber rim — refracted atmosphere light hugging the limb
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI);
+  const rimG = ctx.createRadialGradient(cx, cy, R*0.80, cx, cy, R);
+  rimG.addColorStop(0, 'rgba(225,88,16,0)');
+  rimG.addColorStop(1, 'rgba(225,88,16,0.32)');
+  ctx.fillStyle = rimG; ctx.fill();
+  ctx.restore();
+
+  // atmospheric corona beyond the disk — Earth's lit atmosphere seen from the moon
+  ctx.save();
+  const glowG = ctx.createRadialGradient(cx, cy, R*0.94, cx, cy, R*1.5);
+  glowG.addColorStop(0,   'rgba(210,70,14,0.24)');
+  glowG.addColorStop(0.4, 'rgba(175,48,8,0.12)');
+  glowG.addColorStop(1,   'rgba(175,48,8,0)');
+  ctx.fillStyle = glowG;
+  ctx.beginPath(); ctx.arc(cx, cy, R*1.5, 0, 2*Math.PI); ctx.fill();
+  ctx.restore();
+}
+
 /* ---------------- compose: Tonight ---------------- */
 function render(){
   const now = new Date();
@@ -851,8 +976,43 @@ function buildLibrary(){
     </article>`;
   }).join('');
 
+  html += `<div class="lib-section">Rare &amp; Special Moons</div>`;
+  html += SPECIAL_MOONS.map(sm=>{
+    const p = sm.type==='black' ? '0' : '0.5';
+    return `<article class="entry">
+      <canvas class="mini" data-p="${p}" data-moon-type="${sm.type}"></canvas>
+      <div class="entry-body">
+        <div class="entry-name">${sm.name}</div>
+        <div class="lib-meaning">${sm.meaning}</div>
+        <div class="entry-lore">"${sm.lore.lead} ${sm.lore.body}" <span class="credit">— ${sm.lore.credit}</span></div>
+      </div>
+    </article>`;
+  }).join('');
+
   wrap.innerHTML = html;
-  wrap.querySelectorAll('canvas.mini').forEach(c => renderMoon(c, parseFloat(c.dataset.p)));
+  wrap.querySelectorAll('canvas.mini').forEach(c => {
+    const t = c.dataset.moonType;
+    if (t === 'blood'){
+      renderBloodMoon(c);
+    } else {
+      renderMoon(c, parseFloat(c.dataset.p) || 0);
+      // supermoon: extra outer glow to suggest its larger apparent size
+      if (t === 'super'){
+        const dpr = Math.min(window.devicePixelRatio||1,2);
+        const css = c.clientWidth || c.offsetWidth || 54;
+        const px2 = Math.round(css*dpr);
+        const cx2=px2/2, cy2=px2/2, R2=px2*0.47;
+        const ctx2 = c.getContext('2d');
+        ctx2.save();
+        const sg = ctx2.createRadialGradient(cx2,cy2,R2*0.78,cx2,cy2,R2*1.55);
+        sg.addColorStop(0,  'rgba(252,248,228,0.13)');
+        sg.addColorStop(0.5,'rgba(252,248,228,0.07)');
+        sg.addColorStop(1,  'rgba(252,248,228,0)');
+        ctx2.fillStyle=sg; ctx2.beginPath(); ctx2.arc(cx2,cy2,R2*1.55,0,2*Math.PI); ctx2.fill();
+        ctx2.restore();
+      }
+    }
+  });
 }
 
 /* ---------------- navigation ---------------- */
