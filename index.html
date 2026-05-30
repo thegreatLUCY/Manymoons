@@ -51,6 +51,9 @@
     background:#eef2ff; opacity:var(--o,.6);
     box-shadow:0 0 4px rgba(238,242,255,.6);
   }
+  .star.warm{ background:#fdf3e4; box-shadow:0 0 5px rgba(253,243,228,.7); }
+  .star.lantern{ box-shadow:0 0 7px rgba(238,242,255,.85), 0 0 16px rgba(190,205,255,.35); }
+  .star.lantern.warm{ box-shadow:0 0 7px rgba(253,243,228,.9), 0 0 16px rgba(255,228,190,.4); }
   .star.tw{animation:twinkle var(--d,6s) ease-in-out infinite alternate; animation-delay:var(--dl,0s);}
   @keyframes twinkle{from{opacity:.12;}to{opacity:var(--o,.7);}}
   .grain{
@@ -109,8 +112,15 @@
     background:radial-gradient(circle at 50% 50%, rgba(244,240,224,.30) 0%, rgba(140,160,220,.12) 34%, rgba(58,79,135,0) 66%);
     animation:breathe 9s ease-in-out infinite alternate; pointer-events:none;
   }
-  canvas#moon{position:relative; width:100%; height:100%; display:block;}
-  @keyframes breathe{ from{transform:scale(.96); opacity:.6;} to{transform:scale(1.07); opacity:.92;} }
+  /* slow, wider corona behind the halo for atmospheric depth */
+  .halo::after{
+    content:""; position:absolute; inset:-34%; border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(214,224,255,.10) 0%, rgba(120,142,210,.06) 44%, rgba(58,79,135,0) 70%);
+    animation:breatheSlow 13s ease-in-out infinite alternate; animation-delay:-3s;
+  }
+  canvas#moon{position:relative; width:100%; height:100%; display:block; filter:drop-shadow(0 0 26px rgba(228,224,206,.16));}
+  @keyframes breathe{ from{transform:scale(.96); opacity:.6;} to{transform:scale(1.08); opacity:.94;} }
+  @keyframes breatheSlow{ from{transform:scale(1.02); opacity:.5;} to{transform:scale(1.12); opacity:.8;} }
 
   .reading{ width:100%; text-align:center; opacity:0; animation:rise 1.4s cubic-bezier(.2,.7,.2,1) 1.05s forwards; }
   .phase{ font-weight:400; font-size:34px; line-height:1.05; letter-spacing:.005em; color:var(--ink); }
@@ -133,7 +143,8 @@
     background:none; border:none; cursor:pointer; color:inherit;
     opacity:0; animation:rise 1.4s cubic-bezier(.2,.7,.2,1) 1.5s forwards; -webkit-tap-highlight-color:transparent;
   }
-  .press .ring{ width:46px; height:46px; border-radius:50%; border:1px solid var(--hair); display:grid; place-items:center; transition:border-color .5s, transform .5s, box-shadow .5s; }
+  .press .ring{ position:relative; width:46px; height:46px; border-radius:50%; border:1px solid var(--hair); display:grid; place-items:center; transition:border-color .5s, transform .5s, box-shadow .5s; }
+  .press .bloom{ position:absolute; inset:0; border-radius:50%; pointer-events:none; opacity:0; }
   .press .dot{ width:7px; height:7px; border-radius:50%; background:var(--ink-soft); opacity:.7; transition:transform .5s, background .5s, box-shadow .5s; }
   .press .label{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:var(--ink-faint); padding-left:.4em; transition:color .5s; }
   .press:hover .ring{border-color:rgba(244,240,224,.6); box-shadow:0 0 24px rgba(244,240,224,.12);}
@@ -141,6 +152,15 @@
   .press.done .ring{border-color:rgba(244,240,224,.7);}
   .press.done .dot{background:var(--moon-lit-hi); transform:scale(1.5); box-shadow:0 0 16px rgba(244,240,224,.8);}
   .press.done .label{color:var(--ink-soft);}
+  /* gentle bloom + ripple when the night is pressed */
+  .press.blooming .bloom{ animation:pressBloom 1.5s cubic-bezier(.2,.7,.2,1) forwards; }
+  .press.blooming .ring{ animation:ringPulse 1.5s cubic-bezier(.2,.7,.2,1); }
+  @keyframes pressBloom{
+    0%{ opacity:0; transform:scale(.5); box-shadow:0 0 0 0 rgba(244,240,224,.5); }
+    30%{ opacity:1; box-shadow:0 0 18px 2px rgba(244,240,224,.4); }
+    100%{ opacity:0; transform:scale(2.5); box-shadow:0 0 0 14px rgba(244,240,224,0); }
+  }
+  @keyframes ringPulse{ 0%,100%{ transform:scale(1); } 22%{ transform:scale(1.12); } }
 
   @keyframes rise{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes moonIn{from{opacity:0; transform:translateY(20px) scale(.94);}to{opacity:1; transform:translateY(0) scale(1);}}
@@ -180,6 +200,54 @@
 
   @media (max-height:680px){
     .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
+  }
+
+  /* honor reduced-motion: keep everything legible & in final state, drop the motion */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.001ms !important; animation-iteration-count:1 !important;
+      animation-delay:0ms !important; transition-duration:.001ms !important;
+    }
+    .masthead,.nav-book,.moon-wrap,.reading,.press,
+    .ob-eyebrow,.ob-moon-wrap,.ob-phase,.ob-date,.ob-lore{ opacity:1 !important; }
+    .halo{ opacity:.85 !important; transform:none !important; }
+    .halo::after{ opacity:.6 !important; transform:none !important; }
+    .star.tw{ opacity:var(--o,.6) !important; }
+    #tonight,#book{ transition:none !important; }
+  }
+
+  /* ---------- BOOK TAB — swipe-left affordance ---------- */
+  .book-tab{
+    position:fixed; right:0; top:50%; z-index:4;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+    width:26px; padding:18px 0;
+    background:rgba(10,14,28,.55); border:1px solid var(--hair); border-right:none;
+    border-radius:10px 0 0 10px;
+    cursor:pointer; color:var(--ink-faint);
+    -webkit-tap-highlight-color:transparent;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    opacity:0;
+    animation:bookTabIn .9s cubic-bezier(.2,.7,.2,1) 2.8s forwards, bookTabNudge 5s ease-in-out 4s infinite;
+    transition:opacity .4s, background .35s, color .35s;
+  }
+  .book-tab:hover{ background:rgba(20,29,56,.8); color:var(--ink-soft); }
+  .book-tab:active{ opacity:.6 !important; }
+  body.show-book .book-tab{ opacity:0 !important; pointer-events:none; }
+  .book-tab .bt-label{
+    font-family:var(--sans); font-weight:300; font-size:7px; letter-spacing:.18em; text-transform:uppercase;
+    writing-mode:vertical-rl; color:inherit;
+  }
+  @keyframes bookTabIn{
+    from{ opacity:0; transform:translateY(-50%) translateX(10px); }
+    to{   opacity:1; transform:translateY(-50%) translateX(0); }
+  }
+  @keyframes bookTabNudge{
+    0%,82%,100%{ transform:translateY(-50%) translateX(0); }
+    87%{         transform:translateY(-50%) translateX(-8px); }
+    93%{         transform:translateY(-50%) translateX(-3px); }
+  }
+  @media(prefers-reduced-motion:reduce){
+    .book-tab{ animation:bookTabIn .9s cubic-bezier(.2,.7,.2,1) 2.8s forwards !important; }
   }
 
   /* ---------- ONBOARD: birth moon ---------- */
@@ -290,7 +358,7 @@
       </section>
 
       <button class="press" id="press" aria-label="Press tonight's moon">
-        <span class="ring"><span class="dot"></span></span>
+        <span class="ring"><span class="bloom"></span><span class="dot"></span></span>
         <span class="label" id="presslabel">Press tonight's moon</span>
       </button>
     </main>
@@ -316,6 +384,14 @@
       <div class="tab" id="tab-library" hidden></div>
     </div>
   </section>
+
+  <!-- ===================== BOOK TAB ===================== -->
+  <button class="book-tab" id="bookTab" aria-label="Your book — swipe left or tap to open">
+    <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
+      <path d="M7.5 1.5L1.5 7.5L7.5 13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="bt-label">Book</span>
+  </button>
 
   <!-- ===================== ONBOARD: BIRTH MOON ===================== -->
   <section id="onboard" hidden>
@@ -491,66 +567,138 @@ function displayName(name, date){
 function fmtDate(d){ return `${DAYS[d.getDay()]} · ${d.getDate()} ${MON[d.getMonth()]}`; }
 function fmtDateLong(d){ return `${DAYS[d.getDay()]} · ${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; }
 
-/* ---------------- moon rendering (verified) ---------------- */
-function renderMoon(canvas, p){
-  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-  const css = canvas.clientWidth || canvas.offsetWidth || 120;
-  canvas.width = css * dpr;
-  canvas.height = css * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  const cx = css/2, cy = css/2, R = css * 0.46;
-  const waxing = p < 0.5;
-  const frac = (1 - Math.cos(2 * Math.PI * p)) / 2;
-  ctx.clearRect(0,0,css,css);
-
-  ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI); ctx.clip();
-
-  // dark (earthshine) disk
-  const dg = ctx.createRadialGradient(cx, cy, R*0.1, cx, cy, R);
-  dg.addColorStop(0, '#1c2440'); dg.addColorStop(1, '#0d1226');
-  ctx.fillStyle = dg; ctx.fillRect(0,0,css,css);
-
-  // lit region
-  const lg = ctx.createRadialGradient(cx - R*0.28, cy - R*0.30, R*0.05, cx, cy, R*1.05);
-  lg.addColorStop(0, '#fdfaf1'); lg.addColorStop(0.62, '#efe7d2'); lg.addColorStop(1, '#cdc1a4');
-
-  if (frac > 0.004){
-    ctx.beginPath();
-    if (frac > 0.996){
-      ctx.arc(cx, cy, R, 0, 2*Math.PI); // full
-    } else {
-      const k = Math.cos(2 * Math.PI * p);
-      if (waxing){
-        ctx.arc(cx, cy, R, -Math.PI/2, Math.PI/2, false);
-        ctx.ellipse(cx, cy, Math.abs(R*k), R, 0, Math.PI/2, -Math.PI/2, k > 0);
-      } else {
-        ctx.arc(cx, cy, R, Math.PI/2, -Math.PI/2, false);
-        ctx.ellipse(cx, cy, Math.abs(R*k), R, 0, -Math.PI/2, Math.PI/2, k > 0);
-      }
-    }
-    ctx.closePath();
-    ctx.fillStyle = lg; ctx.fill();
-
-    // faint maria (soft, multiply) — only meaningful when there's lit area
-    ctx.globalCompositeOperation = 'multiply';
-    const maria = [[-.24,-.18,.30],[.16,-.04,.22],[-.02,.32,.24],[.32,.24,.16],[.24,-.34,.14],[-.36,.12,.17]];
-    for (const [mx,my,mr] of maria){
-      const gx = cx + mx*R, gy = cy + my*R, gr = mr*R;
-      const mg = ctx.createRadialGradient(gx, gy, gr*0.1, gx, gy, gr);
-      mg.addColorStop(0, 'rgba(150,140,116,0.15)'); mg.addColorStop(1, 'rgba(150,140,116,0)');
-      ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 2*Math.PI); ctx.fill();
-    }
-    ctx.globalCompositeOperation = 'source-over';
+/* ---------------- moon rendering (procedural, realistic) ----------------
+   A lit sphere shaded per-pixel: Lommel-Seeliger photometry (so the full moon
+   reads flat, not like a 3D ball), a geometrically-true but soft terminator,
+   limb darkening at the disk edge, a warm sub-solar highlight cooling toward
+   the terminator, irregular maria + procedural mottling, refined earthshine —
+   then vector craters with sun-aligned relief layered on top. Drawn once per
+   phase, so it can afford detail; cost scales down by render size (LOD).      */
+const _clamp = (v,a,b)=> v<a?a:(v>b?b:v);
+const _smooth = t => t*t*(3-2*t);
+function _ss(a,b,x){ if(b===a) return x<a?0:1; const t=_clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); }
+function _mr(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function _h2(ix,iy){ const h=Math.sin(ix*127.1+iy*311.7)*43758.5453; return h-Math.floor(h); }
+function _vnoise(x,y){
+  const ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy;
+  const ux=fx*fx*(3-2*fx), uy=fy*fy*(3-2*fy);
+  const a=_h2(ix,iy), b=_h2(ix+1,iy), c=_h2(ix,iy+1), d=_h2(ix+1,iy+1);
+  return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy;
+}
+// near-side maria, broken into overlapping soft blobs so the seas read irregular.
+// stored as [x, y, radius², strength] in normalised disk coords.
+const _MARIA = (function(){
+  const seeds=[
+    [-0.30,-0.33,0.33,0.95],[ 0.06,-0.29,0.25,0.90],[ 0.31,-0.08,0.25,0.88],
+    [ 0.57,-0.21,0.12,0.85],[ 0.45, 0.15,0.18,0.74],[ 0.30, 0.31,0.13,0.66],
+    [-0.47, 0.04,0.30,0.50],[-0.21, 0.31,0.21,0.64],[-0.40, 0.35,0.11,0.52]
+  ];
+  const r=_mr(7177), out=[];
+  for(const [x,y,rad,st] of seeds){
+    out.push([x,y,rad*rad,st]);
+    const n=2+(r()*2|0);
+    for(let i=0;i<n;i++){ const a=r()*6.283, dd=rad*(0.35+r()*0.5), rr=rad*(0.45+r()*0.4); out.push([x+Math.cos(a)*dd, y+Math.sin(a)*dd, rr*rr, st*0.78]); }
   }
+  return out;
+})();
+// scattered craters, sorted big→small so LOD keeps the prominent ones
+const _CRATERS = (function(){
+  const r=_mr(40961), list=[];
+  for(let i=0;i<52;i++){
+    let ux,uy; do{ ux=r()*2-1; uy=r()*2-1; }while(ux*ux+uy*uy>0.93);
+    const s=Math.pow(r(),2.3);
+    list.push({x:ux,y:uy,r:0.012+s*0.075,d:0.55+r()*0.45});
+  }
+  list.sort((a,b)=>b.r-a.r);
+  return list;
+})();
 
-  // limb shading
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI);
-  const rim = ctx.createRadialGradient(cx, cy, R*0.82, cx, cy, R);
-  rim.addColorStop(0, 'rgba(0,0,0,0)'); rim.addColorStop(1, 'rgba(8,10,22,0.45)');
-  ctx.fillStyle = rim; ctx.fill();
+function renderMoon(canvas, p){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  const px  = Math.max(8, Math.round(css * dpr));
+  canvas.width = px; canvas.height = px;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,px,px);
+
+  const cx = px/2, cy = px/2, R = px*0.47;
+  const th = 2*Math.PI*p, sinT = Math.sin(th), cosT = Math.cos(th);
+  const frac = (1 - cosT)/2;                 // illuminated fraction
+  const earth = _clamp(1 - frac, 0, 1);      // earthshine: strongest near new
+  const detail = css >= 90;                  // LOD: surface mottling on larger renders
+  const pen = 0.045 + 0.025*_clamp(110/Math.max(css,60),0,1); // soft-terminator half-band
+
+  const img = ctx.createImageData(px,px), d = img.data, invR = 1/R;
+  for(let y=0; y<px; y++){
+    const ndy=(y+0.5-cy)*invR;
+    for(let x=0; x<px; x++){
+      const i=(y*px+x)<<2;
+      const ndx=(x+0.5-cx)*invR;
+      const r2=ndx*ndx+ndy*ndy;
+      if(r2>=1){ d[i+3]=0; continue; }
+      const z=Math.sqrt(1-r2);                       // emission cosine (toward viewer)
+      const cosi=ndx*sinT - z*cosT;                  // incidence cosine; ==0 on the true terminator
+      const L=_ss(-pen,pen,cosi);                    // soft day fraction across the terminator
+
+      // albedo: bright highlands minus the maria, plus faint mottling
+      let alb=1;
+      for(let m=0;m<_MARIA.length;m++){
+        const M=_MARIA[m], qx=ndx-M[0], qy=ndy-M[1], q2=qx*qx+qy*qy;
+        if(q2<M[2]) alb -= M[3]*0.30*(1-q2/M[2]);
+      }
+      if(detail) alb *= 0.93 + 0.13*_vnoise(ndx*8+12, ndy*8+7);
+      if(alb<0.22) alb=0.22;
+
+      // day shading: Lommel-Seeliger keeps the full moon flat; limb darkening at the edge
+      const mu0=cosi>0?cosi:0;
+      let day=2*mu0/(mu0+z+0.045);
+      day*=0.6+0.4*z;
+      if(day>1) day=1;
+
+      // warm sub-solar highlight cooling to a bluish grey toward the terminator
+      const tt=_smooth(_clamp((day-0.08)/0.6,0,1));
+      const sR=176+79*tt, sG=188+61*tt, sB=214+22*tt;
+      const li=day*alb;
+      const litR=sR*li, litG=sG*li, litB=sB*li;
+
+      // earthshine on the night side — cool, dim, brighter near new moon
+      const ee=0.42+1.0*earth;
+      const nR=24*ee*alb, nG=34*ee*alb, nB=60*ee*alb;
+
+      let oR=nR+(litR-nR)*L, oG=nG+(litG-nG)*L, oB=nB+(litB-nB)*L;
+      const rr=Math.sqrt(r2);
+      const a = rr>0.985 ? 255*_clamp((1-rr)/0.015,0,1) : 255;   // anti-aliased limb
+      d[i]=oR; d[i+1]=oG; d[i+2]=oB; d[i+3]=a;
+    }
+  }
+  ctx.putImageData(img,0,0);
+
+  // craters — sun-aligned shadow + highlight, exaggerated near the terminator for relief
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.clip();
+  const cn = css<70 ? 8 : css<150 ? 22 : _CRATERS.length;
+  for(let i=0;i<cn;i++){
+    const c=_CRATERS[i], q2=c.x*c.x+c.y*c.y; if(q2>0.9) continue;
+    const z=Math.sqrt(1-q2);
+    const cosi=c.x*sinT - z*cosT;
+    const st=_ss(0.0,0.32,cosi); if(st<0.02) continue;     // only on the lit side, ramps in near terminator
+    const cr=c.r*R*(0.5+0.5*z); if(cr<0.7) continue;       // foreshorten toward the limb
+    const px_=cx+c.x*R, py_=cy+c.y*R;
+    const relief=st*(0.5+0.7*(1-_clamp(cosi,0,1)));
+    const off=cr*0.55;
+    ctx.globalCompositeOperation='multiply';
+    const gs=ctx.createRadialGradient(px_-sinT*off, py_, cr*0.05, px_-sinT*off*0.3, py_, cr*1.05);
+    const sh=_clamp(0.34*relief*c.d,0,0.6);
+    gs.addColorStop(0,'rgba(16,18,30,'+sh+')'); gs.addColorStop(1,'rgba(16,18,30,0)');
+    ctx.fillStyle=gs; ctx.beginPath(); ctx.arc(px_,py_,cr,0,2*Math.PI); ctx.fill();
+    ctx.globalCompositeOperation='lighter';
+    const gh=ctx.createRadialGradient(px_+sinT*off, py_, cr*0.05, px_+sinT*off, py_, cr*0.95);
+    const hi=_clamp(0.14*relief,0,0.3);
+    gh.addColorStop(0,'rgba(255,248,232,'+hi+')'); gh.addColorStop(1,'rgba(255,248,232,0)');
+    ctx.fillStyle=gh; ctx.beginPath(); ctx.arc(px_,py_,cr,0,2*Math.PI); ctx.fill();
+  }
+  ctx.globalCompositeOperation='source-over';
   ctx.restore();
 }
 // Tonight's big moon (forceP used for phase testing)
@@ -777,14 +925,26 @@ function skipOnboard(){
 function makeStars(){
   const box = document.getElementById('stars');
   let html = '';
-  for (let i=0;i<64;i++){
-    const x = Math.random()*100, y = Math.random()*72;
-    const o = (0.25 + Math.random()*0.55).toFixed(2);
-    const tw = Math.random() > 0.45;
-    const d = (4 + Math.random()*7).toFixed(1);
-    const dl = (Math.random()*6).toFixed(1);
-    const s = (Math.random()*1.4 + 0.6).toFixed(2);
-    html += `<span class="star${tw?' tw':''}" style="left:${x}%;top:${y}%;--o:${o};--d:${d}s;--dl:${dl}s;transform:scale(${s})"></span>`;
+  // three depth tiers: far dust (dim, dense), mid, and a few near "lanterns" (bright, warm, with rays)
+  const tiers = [
+    { n:46, sMin:0.45, sMax:0.95, oMin:0.10, oMax:0.30, warm:0.0,  ray:0    },
+    { n:30, sMin:0.85, sMax:1.55, oMin:0.28, oMax:0.62, warm:0.25, ray:0    },
+    { n:9,  sMin:1.5,  sMax:2.5,  oMin:0.62, oMax:0.92, warm:0.55, ray:1    }
+  ];
+  for (const t of tiers){
+    for (let i=0;i<t.n;i++){
+      const x = (Math.random()*100).toFixed(2);
+      // bias stars toward the upper sky, thinning toward the horizon
+      const y = (Math.pow(Math.random(),1.35)*82).toFixed(2);
+      const o = (t.oMin + Math.random()*(t.oMax-t.oMin)).toFixed(2);
+      const s = (t.sMin + Math.random()*(t.sMax-t.sMin)).toFixed(2);
+      const tw = Math.random() > 0.35;
+      const d = (5 + Math.random()*8).toFixed(1);
+      const dl = (Math.random()*9).toFixed(1);
+      const warm = Math.random() < t.warm;
+      const cls = `star${tw?' tw':''}${t.ray?' lantern':''}${warm?' warm':''}`;
+      html += `<span class="${cls}" style="left:${x}%;top:${y}%;--o:${o};--d:${d}s;--dl:${dl}s;transform:scale(${s})"></span>`;
+    }
   }
   box.innerHTML = html;
 }
@@ -794,12 +954,14 @@ document.getElementById('press').addEventListener('click', (e)=>{
   const btn = e.currentTarget;
   if (btn.classList.contains('done')) return;
   pressMoon();
-  btn.classList.add('done');
+  btn.classList.add('done','blooming');
+  btn.addEventListener('animationend', ()=>btn.classList.remove('blooming'), {once:true});
   document.getElementById('presslabel').textContent = "Pressed · tonight is yours";
   buildYours();
 });
 
 document.getElementById('toBook').addEventListener('click', ()=>setView('book'));
+document.getElementById('bookTab').addEventListener('click', ()=>setView('book'));
 document.getElementById('toTonight').addEventListener('click', ()=>setView('tonight'));
 
 document.getElementById('obReveal').addEventListener('click', revealBirth);
