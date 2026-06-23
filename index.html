@@ -661,7 +661,7 @@ const _CRATERS = (function(){
   return list;
 })();
 
-function renderMoon(canvas, p){
+function renderMoonProc(canvas, p){
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const css = canvas.clientWidth || canvas.offsetWidth || 120;
   const px  = Math.max(8, Math.round(css * dpr));
@@ -797,7 +797,7 @@ function pressMoon(){
    Earth's atmosphere — every sunrise and sunset at once. Deepest umbra
    at centre (darkest maroon); shallower umbra at the limb (bright amber).
    Same maria/mottling as the main renderer so the surface still reads.  */
-function renderBloodMoon(canvas){
+function renderBloodMoonProc(canvas){
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const css = canvas.clientWidth || canvas.offsetWidth || 120;
   const px  = Math.max(8, Math.round(css * dpr));
@@ -870,6 +870,110 @@ function renderBloodMoon(canvas){
   ctx.fillStyle = glowG;
   ctx.beginPath(); ctx.arc(cx, cy, R*1.5, 0, 2*Math.PI); ctx.fill();
   ctx.restore();
+}
+
+/* ---------------- photographic moon (real texture + procedural shadow) ----------------
+   A single real, full-lit near-side photograph carries the true surface (maria,
+   craters, albedo); the day/night terminator is the same geometry the procedural
+   renderer computes, drawn on top. Near the terminator the photo's own crater
+   shadows are deepened (raking light) so relief reads 3D, and the lit side is
+   graded warm at the sub-solar point, cool toward the terminator. The procedural
+   renderers above remain the fallback until the textures load (and offline).      */
+const _MOON_IMG = new Image(); let _MOON_OK = false;
+const _BLOOD_IMG = new Image(); let _BLOOD_OK = false;
+_MOON_IMG.onload  = ()=>{ _MOON_OK = true;  refreshMoons(); };
+_BLOOD_IMG.onload = ()=>{ _BLOOD_OK = true; refreshMoons(); };
+_MOON_IMG.src  = 'textures/moon.webp';
+_BLOOD_IMG.src = 'textures/blood.webp';
+
+function _coverSquare(tex){ const s=Math.min(tex.width,tex.height); return [(tex.width-s)/2,(tex.height-s)/2,s]; }
+
+function renderPhotoMoon(canvas, p){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  let px = Math.max(8, Math.round(css * dpr));
+  if (css >= 120) px = Math.round(px * 1.25);          // supersample the hero moon for crispness
+  canvas.width = px; canvas.height = px;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingQuality = 'high'; ctx.clearRect(0,0,px,px);
+  const cx = px/2, cy = px/2, R = px*0.47;
+
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.clip();
+  const [sx,sy,s] = _coverSquare(_MOON_IMG);
+  ctx.drawImage(_MOON_IMG, sx,sy,s,s, cx-R,cy-R,2*R,2*R);
+  ctx.restore();
+
+  const img = ctx.getImageData(0,0,px,px), d = img.data, invR = 1/R;
+  const th = 2*Math.PI*p, sinT = Math.sin(th), cosT = Math.cos(th);
+  const frac = (1-cosT)/2, earth = _clamp(1-frac,0,1), pen = 0.04;
+  for (let y=0; y<px; y++){ const ndy=(y+0.5-cy)*invR;
+    for (let x=0; x<px; x++){ const i=(y*px+x)<<2, ndx=(x+0.5-cx)*invR, r2=ndx*ndx+ndy*ndy;
+      if (r2>=1){ d[i+3]=0; continue; }
+      const z=Math.sqrt(1-r2), cosi=ndx*sinT - z*cosT, L=_ss(-pen,pen,cosi);
+      const mu0=cosi>0?cosi:0; let day=2*mu0/(mu0+z+0.045); day*=0.6+0.4*z; if(day>1)day=1;
+      let r=d[i], g=d[i+1], b=d[i+2];
+      // raking light: deepen the photo's crater shadows near the terminator
+      const w = (L>0.004)? _ss(0.42,0.015,mu0) : 0;
+      if (w>0){ const c=1+1.35*w, piv=150; r=piv+(r-piv)*c; g=piv+(g-piv)*c; b=piv+(b-piv)*c; }
+      // warm sub-solar → cool terminator colour temperature
+      const warm=_smooth(_clamp((mu0-0.06)/0.7,0,1));
+      r*= 1+0.05*warm; g*= 1-0.01*warm; b*= 1-0.07*warm+0.06*(1-warm);
+      const night=0.03+0.075*earth, f=night+(day-night)*L;
+      r*=f; g*=f; b*=f;
+      if (L<0.92){ const e=(1-L); b+=26*earth*e; g+=7*earth*e; }      // cool indigo night side
+      const rr=Math.sqrt(r2); if(rr>0.985){ const a=255*_clamp((1-rr)/0.015,0,1); d[i+3]=Math.min(d[i+3],a); }
+      d[i]=r<0?0:r>255?255:r; d[i+1]=g<0?0:g>255?255:g; d[i+2]=b<0?0:b>255?255:b;
+    } }
+  ctx.putImageData(img,0,0);
+
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI);
+  const rg=ctx.createRadialGradient(cx,cy,R*0.8,cx,cy,R);
+  rg.addColorStop(0,'rgba(130,150,210,0)'); rg.addColorStop(1,'rgba(150,168,225,0.18)');
+  ctx.fillStyle=rg; ctx.fill(); ctx.restore();
+}
+
+function renderPhotoBlood(canvas){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  let px = Math.max(8, Math.round(css * dpr));
+  if (css >= 120) px = Math.round(px * 1.25);
+  canvas.width = px; canvas.height = px;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingQuality='high'; ctx.clearRect(0,0,px,px);
+  const cx = px/2, cy = px/2, R = px*0.47;
+
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.clip();
+  const [sx,sy,s] = _coverSquare(_BLOOD_IMG);
+  ctx.drawImage(_BLOOD_IMG, sx,sy,s,s, cx-R,cy-R,2*R,2*R);
+  // umbral gradient — one limb sits deeper in Earth's shadow
+  const ug=ctx.createRadialGradient(cx-R*0.45,cy-R*0.3,R*0.2, cx+R*0.2,cy+R*0.25,R*1.25);
+  ug.addColorStop(0,'rgba(0,0,0,0)'); ug.addColorStop(1,'rgba(8,2,6,0.55)');
+  ctx.fillStyle=ug; ctx.fillRect(cx-R,cy-R,2*R,2*R);
+  ctx.restore();
+
+  // warm rim + atmospheric corona (matches the procedural blood moon)
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI);
+  const rg=ctx.createRadialGradient(cx,cy,R*0.8,cx,cy,R);
+  rg.addColorStop(0,'rgba(200,90,55,0)'); rg.addColorStop(1,'rgba(210,96,58,0.30)');
+  ctx.fillStyle=rg; ctx.fill(); ctx.restore();
+  ctx.save();
+  const gg=ctx.createRadialGradient(cx,cy,R*0.94,cx,cy,R*1.5);
+  gg.addColorStop(0,'rgba(210,70,14,0.22)'); gg.addColorStop(0.4,'rgba(175,48,8,0.11)'); gg.addColorStop(1,'rgba(175,48,8,0)');
+  ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(cx,cy,R*1.5,0,2*Math.PI); ctx.fill(); ctx.restore();
+}
+
+// dispatchers — photo when its texture is ready, procedural otherwise (offline-safe)
+function renderMoon(canvas, p){ _MOON_OK ? renderPhotoMoon(canvas, p) : renderMoonProc(canvas, p); }
+function renderBloodMoon(canvas){ _BLOOD_OK ? renderPhotoBlood(canvas) : renderBloodMoonProc(canvas); }
+
+// when a texture finishes loading, repaint whatever moons are on screen
+let _birthP = null;
+function refreshMoons(){
+  if (document.getElementById('moon')) drawMoon();
+  const lib = document.getElementById('tab-library'); if (lib && lib.childElementCount) buildLibrary();
+  const yrs = document.getElementById('tab-yours');   if (yrs && yrs.childElementCount) buildYours();
+  const bm = document.getElementById('birthMoon');
+  if (bm && _birthP != null && !document.getElementById('obRevealStage').hidden) renderMoon(bm, _birthP);
 }
 
 /* ---------------- compose: Tonight ---------------- */
@@ -1075,6 +1179,7 @@ function revealBirth(){
   _pendingBirth = birthData(y, m, d);
   document.getElementById('obAsk').hidden = true;
   document.getElementById('obRevealStage').hidden = false;   // unhide first so canvas has layout
+  _birthP = _pendingBirth.p;
   renderMoon(document.getElementById('birthMoon'), _pendingBirth.p);
   document.getElementById('obPhase').textContent = _pendingBirth.display;
   document.getElementById('obDate').textContent  = _pendingBirth.dateLabel;
