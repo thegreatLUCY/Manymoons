@@ -137,6 +137,26 @@
   .nav-book:hover{ color:var(--ink); }
   .nav-book:active{ transform:scale(.9); }
 
+  .nav-share{
+    position:absolute; top:calc(env(safe-area-inset-top) + 28px); left:28px;
+    background:none; border:none; color:var(--ink-soft); cursor:pointer; padding:6px;
+    display:grid; place-items:center; line-height:0;
+    opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .8s forwards;
+    transition:color .4s, transform .4s; -webkit-tap-highlight-color:transparent;
+  }
+  .nav-share:hover{ color:var(--ink); }
+  .nav-share:active{ transform:scale(.9); }
+  .nav-share.busy{ opacity:.45; pointer-events:none; }
+
+  .ob-share{
+    margin-top:16px; background:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--ink-faint); padding:8px; transition:color .35s; -webkit-tap-highlight-color:transparent;
+    opacity:0; animation:rise 1.3s cubic-bezier(.2,.7,.2,1) 1.15s forwards;
+  }
+  .ob-share:hover{ color:var(--ink-soft); }
+  .ob-share.busy{ opacity:.45; pointer-events:none; }
+
   .masthead{ text-align:center; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .15s forwards; }
   .wordmark{
     font-family:var(--sans); font-weight:300;
@@ -389,6 +409,13 @@
         </svg>
       </button>
 
+      <button class="nav-share" id="toShare" aria-label="Share tonight's moon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/>
+          <path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>
+        </svg>
+      </button>
+
       <header class="masthead">
         <div class="wordmark">Many Moons</div>
         <div class="date" id="date">—</div>
@@ -481,6 +508,7 @@
         <div class="ob-date" id="obDate">—</div>
         <p class="ob-lore" id="obLore">—</p>
         <button class="ob-cta" id="obBegin">Keep this moon</button>
+        <button class="ob-share" id="obShare">Share this moon</button>
       </div>
     </div>
   </section>
@@ -718,9 +746,9 @@ const _CRATERS = (function(){
   return list;
 })();
 
-function renderMoonProc(canvas, p){
+function renderMoonProc(canvas, p, cssOverride){
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  const css = cssOverride || canvas.clientWidth || canvas.offsetWidth || 120;
   const px  = Math.max(8, Math.round(css * dpr));
   canvas.width = px; canvas.height = px;
   const ctx = canvas.getContext('2d');
@@ -945,9 +973,9 @@ _BLOOD_IMG.src = 'textures/blood.webp';
 
 function _coverSquare(tex){ const s=Math.min(tex.width,tex.height); return [(tex.width-s)/2,(tex.height-s)/2,s]; }
 
-function renderPhotoMoon(canvas, p){
+function renderPhotoMoon(canvas, p, cssOverride){
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const css = canvas.clientWidth || canvas.offsetWidth || 120;
+  const css = cssOverride || canvas.clientWidth || canvas.offsetWidth || 120;
   let px = Math.max(8, Math.round(css * dpr));
   if (css >= 120) px = Math.round(px * 1.25);          // supersample the hero moon for crispness
   canvas.width = px; canvas.height = px;
@@ -1020,7 +1048,7 @@ function renderPhotoBlood(canvas){
 }
 
 // dispatchers — photo when its texture is ready, procedural otherwise (offline-safe)
-function renderMoon(canvas, p){ _MOON_OK ? renderPhotoMoon(canvas, p) : renderMoonProc(canvas, p); }
+function renderMoon(canvas, p, css){ _MOON_OK ? renderPhotoMoon(canvas, p, css) : renderMoonProc(canvas, p, css); }
 function renderBloodMoon(canvas){ _BLOOD_OK ? renderPhotoBlood(canvas) : renderBloodMoonProc(canvas); }
 
 // when a texture finishes loading, repaint whatever moons are on screen
@@ -1031,6 +1059,113 @@ function refreshMoons(){
   const yrs = document.getElementById('tab-yours');   if (yrs && yrs.childElementCount) buildYours();
   const bm = document.getElementById('birthMoon');
   if (bm && _birthP != null && !document.getElementById('obRevealStage').hidden) renderMoon(bm, _birthP);
+}
+
+/* ---------------- shareable moon card ----------------
+   A 1080×1920 portrait card (Stories/TikTok ratio): the real moon, the phase,
+   the date, and one line of lore, on the night palette — built off-screen and
+   handed to the native share sheet (with a download fallback). Every share is
+   an ad for the app, so this is the growth loop.                              */
+const _CARD = { w:1080, h:1920 };
+function _cardText(ctx, text, x, y, font, color, ls, align){
+  ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align || 'center'; ctx.textBaseline = 'alphabetic';
+  if ('letterSpacing' in ctx){ ctx.letterSpacing = (ls||0)+'px'; ctx.fillText(text, x, y); ctx.letterSpacing = '0px'; }
+  else ctx.fillText(text, x, y);
+}
+function _cardWrap(ctx, text, maxW){
+  const words = String(text||'').split(' '); const lines = []; let line = '';
+  for (const w of words){ const t = line ? line+' '+w : w; if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line); return lines;
+}
+async function _ensureCardFonts(){
+  if (!document.fonts) return;
+  try{ await Promise.all([
+    document.fonts.load("400 92px 'Cormorant Garamond'"),
+    document.fonts.load("italic 400 46px 'Cormorant Garamond'"),
+    document.fonts.load("300 30px 'Jost'"),
+  ]); await document.fonts.ready; }catch(e){}
+}
+async function buildCardCanvas(s){
+  await _ensureCardFonts();
+  const { w, h } = _CARD, cx = w/2;
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+
+  // night background (shares always use the dark palette)
+  let g = ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'#0a0e1c'); g.addColorStop(0.62,'#070b16'); g.addColorStop(1,'#04060c');
+  ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+  let rg = ctx.createRadialGradient(cx, h*0.17, 0, cx, h*0.17, w*0.95);
+  rg.addColorStop(0,'rgba(58,79,135,0.38)'); rg.addColorStop(0.55,'rgba(20,29,56,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0,0,w,h);
+
+  // stars
+  const rnd = _mr(20260624);
+  for (let i=0;i<110;i++){
+    const sx=rnd()*w, sy=rnd()*h*0.62, r=rnd()*1.6+0.4, o=0.2+rnd()*0.6;
+    ctx.beginPath(); ctx.arc(sx,sy,r,0,2*Math.PI);
+    ctx.fillStyle='rgba(238,242,255,'+o.toFixed(2)+')'; ctx.fill();
+  }
+
+  // moon + halo
+  const D = Math.round(w*0.60), moonY = Math.round(h*0.325);
+  const hg = ctx.createRadialGradient(cx, moonY, D*0.30, cx, moonY, D*0.82);
+  hg.addColorStop(0,'rgba(244,240,224,0.16)'); hg.addColorStop(0.5,'rgba(140,160,220,0.06)'); hg.addColorStop(1,'rgba(58,79,135,0)');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(cx, moonY, D*0.82, 0, 2*Math.PI); ctx.fill();
+  const mc = document.createElement('canvas');
+  renderMoon(mc, s.p, D);                       // high-res off-screen moon
+  ctx.drawImage(mc, cx-D/2, moonY-D/2, D, D);
+
+  // wordmark
+  _cardText(ctx, 'MANY MOONS', cx, 150, "300 30px 'Jost',sans-serif", 'rgba(167,173,196,0.9)', 14);
+
+  // eyebrow + phase + meta
+  if (s.eyebrow) _cardText(ctx, s.eyebrow.toUpperCase(), cx, h*0.595, "300 30px 'Jost',sans-serif", 'rgba(107,114,144,0.95)', 10);
+  _cardText(ctx, s.name, cx, h*0.66, "400 92px 'Cormorant Garamond',serif", '#ece7d7', 0.5);
+  _cardText(ctx, `${s.dateLabel}  ·  ${s.illum}% LIT`, cx, h*0.70, "300 27px 'Jost',sans-serif", '#a7adc4', 5);
+
+  // divider
+  ctx.strokeStyle='rgba(214,222,255,0.25)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-40,h*0.728); ctx.lineTo(cx+40,h*0.728); ctx.stroke();
+
+  // lore lead (italic, wrapped)
+  if (s.lead){
+    const lead = String(s.lead).replace(/[\s,;:—-]+$/,'');   // no dangling punctuation on the card
+    ctx.font = "italic 400 46px 'Cormorant Garamond',serif";
+    const lines = _cardWrap(ctx, lead, w*0.74).slice(0,3);
+    let ly = h*0.775;
+    for (const ln of lines){ _cardText(ctx, ln, cx, ly, "italic 400 46px 'Cormorant Garamond',serif", '#ded8c6', 0); ly += 62; }
+  }
+
+  // footer
+  _cardText(ctx, 'SAME MOON, WHEREVER YOU ARE', cx, h-110, "300 24px 'Jost',sans-serif", 'rgba(107,114,144,0.9)', 8);
+  return cv;
+}
+async function shareMoonCard(subject, btn){
+  if (btn) btn.classList.add('busy');
+  try{
+    const cv = await buildCardCanvas(subject);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if (!blob) return;
+    const file = new File([blob], 'many-moons.png', { type:'image/png' });
+    const data = { files:[file], title:'Many Moons', text:`${subject.name} · ${subject.dateLabel}` };
+    if (navigator.canShare && navigator.canShare({ files:[file] })){
+      try{ await navigator.share(data); return; }catch(e){ if (e && e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'many-moons.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  }catch(e){ /* swallow — sharing is best-effort */ }
+  finally{ if (btn) btn.classList.remove('busy'); }
+}
+function tonightSubject(){
+  const now = new Date(); const { p, illum } = moonPhase(now); const name = phaseName(p);
+  return { p, name: displayName(name, now), dateLabel: fmtDateLong(now), illum: Math.round(illum*100), lead: pickLore(name, now).lead, eyebrow:'Tonight' };
+}
+function birthSubject(){
+  const b = _pendingBirth || loadStore().birth; if (!b) return null;
+  return { p: b.p, name: b.display, dateLabel: b.dateLabel, illum: Math.round(b.illum*100), lead: b.lore && b.lore.lead, eyebrow:'Born under' };
 }
 
 /* ---------------- compose: Tonight ---------------- */
@@ -1317,6 +1452,11 @@ document.getElementById('press').addEventListener('click', (e)=>{
 document.getElementById('toBook').addEventListener('click', ()=>setView('book'));
 document.getElementById('bookTab').addEventListener('click', ()=>setView('book'));
 document.getElementById('toTonight').addEventListener('click', ()=>setView('tonight'));
+
+const _shareBtn = document.getElementById('toShare');
+_shareBtn.addEventListener('click', ()=> shareMoonCard(tonightSubject(), _shareBtn));
+const _obShareBtn = document.getElementById('obShare');
+_obShareBtn.addEventListener('click', ()=>{ const s = birthSubject(); if (s) shareMoonCard(s, _obShareBtn); });
 
 document.getElementById('obReveal').addEventListener('click', revealBirth);
 document.getElementById('obBegin').addEventListener('click', keepBirth);
