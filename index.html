@@ -318,6 +318,33 @@
   .entry-btn:active{ opacity:.6; }
   .lib-note{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.04em; line-height:1.5; color:var(--ink-faint); padding:0 2px 12px; }
 
+  /* ---------- About & data ---------- */
+  .about-open{ display:block; width:100%; margin-top:22px; background:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--ink-faint); padding:10px; transition:color .3s; -webkit-tap-highlight-color:transparent; }
+  .about-open:hover{ color:var(--ink-soft); }
+  #about{ position:fixed; inset:0; z-index:11; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    background:var(--onboard-bg); animation:obFade .5s ease both; }
+  #about[hidden]{ display:none; }
+  .about-shell{ max-width:480px; margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 26px) 28px calc(env(safe-area-inset-bottom) + 48px); }
+  .about-mark{ font-family:var(--serif); font-weight:500; font-size:30px; color:var(--ink); margin-top:8px; }
+  .about-tag{ font-family:var(--serif); font-style:italic; font-size:16px; line-height:1.5; color:var(--ink-soft); margin-top:10px; max-width:34ch; }
+  .about-ver{ font-family:var(--sans); font-weight:300; font-size:9.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-faint); margin-top:12px; }
+  .about-count{ font-family:var(--serif); font-size:19px; color:var(--ink); padding:2px 0 4px; }
+  .about-actions{ display:flex; gap:11px; margin-top:8px; flex-wrap:wrap; }
+  .about-btn{ flex:1 1 0; min-width:130px; background:none; cursor:pointer; border:1px solid var(--hair); border-radius:999px;
+    padding:13px 18px; font-family:var(--sans); font-weight:300; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink); transition:border-color .35s, background .35s; -webkit-tap-highlight-color:transparent; }
+  .about-btn:hover{ border-color:var(--ink-soft); background:var(--surface-soft); }
+  .about-btn:active{ transform:scale(.98); }
+  .about-msg{ min-height:16px; margin-top:12px; font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.1em; color:#cdbd86; }
+  .about-link{ display:inline-block; margin-top:8px; background:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.2em; text-transform:uppercase; padding:8px 0;
+    color:var(--ink-faint); transition:color .3s; -webkit-tap-highlight-color:transparent; }
+  .about-link.danger:hover{ color:#c87b6a; }
+  .about-body{ font-family:var(--serif); font-size:15.5px; line-height:1.6; color:var(--lore-ink); max-width:40ch; }
+
   @media (max-height:680px){
     .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
   }
@@ -534,6 +561,8 @@
         </div>
       </div>
       <div class="lib-note set-note">A quiet nudge each evening to catch the night's moon.</div>
+
+      <button class="about-open" id="aboutOpen">About &amp; your data</button>
     </div>
   </section>
 
@@ -575,6 +604,40 @@
         <button class="ob-cta" id="obBegin">Keep this moon</button>
         <button class="ob-share" id="obShare">Share this moon</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== ABOUT & DATA ===================== -->
+  <section id="about" hidden>
+    <div class="about-shell">
+      <header class="book-head">
+        <button class="back" id="aboutBack" aria-label="Back to your book">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="book-title">About</div>
+      </header>
+
+      <div class="about-mark">Many Moons</div>
+      <p class="about-tag">A quiet companion for the moon overhead — tonight’s phase, and the stories the world has told about it.</p>
+      <div class="about-ver">Version 1.0</div>
+
+      <div class="lib-section">Your collection</div>
+      <div class="about-count" id="aboutCount">—</div>
+      <div class="about-actions">
+        <button class="about-btn" id="exportBtn">Export a backup</button>
+        <button class="about-btn" id="importBtn">Restore a backup</button>
+      </div>
+      <div class="about-msg" id="aboutMsg" role="status"></div>
+      <button class="about-link danger" id="resetBtn">Erase my collection</button>
+      <div class="lib-note">Your moons live only on this device. Export a backup before changing phones or clearing app data.</div>
+
+      <div class="lib-section">How it works</div>
+      <p class="about-body">The phase is computed from the moon’s synodic month — 29.53 days — exact to the day and entirely offline. No account, no location, no tracking. The surface is a NASA Lunar Reconnaissance Orbiter image; the shadow is drawn by the app for the night’s exact phase.</p>
+
+      <div class="lib-section">Imagery &amp; type</div>
+      <p class="about-body">Lunar surface: NASA / GSFC / Arizona State University (public domain). Set in Cormorant Garamond &amp; Jost.</p>
+
+      <input type="file" id="importFile" accept="application/json,.json" hidden />
     </div>
   </section>
 
@@ -1570,6 +1633,53 @@ async function setReminderPref(on){
   }
 }
 
+/* ---------------- about & data (export / import / reset) ---------------- */
+function openAbout(){
+  const n = Object.keys(loadStore().collection).length;
+  document.getElementById('aboutCount').textContent = n ? `${n} ${n===1?'moon':'moons'} pressed` : 'No moons pressed yet';
+  document.getElementById('aboutMsg').textContent = '';
+  document.getElementById('about').hidden = false;
+}
+function closeAbout(){ document.getElementById('about').hidden = true; }
+function aboutMsg(t){ const el=document.getElementById('aboutMsg'); if(el) el.textContent = t; }
+
+function exportData(){
+  try{
+    const blob = new Blob([JSON.stringify(loadStore())], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `many-moons-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    aboutMsg('Backup downloaded.');
+  }catch(e){ aboutMsg('Could not export.'); }
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const incoming = JSON.parse(reader.result);
+      if (!incoming || typeof incoming !== 'object' || typeof incoming.collection !== 'object') throw 0;
+      const store = loadStore();
+      store.collection = Object.assign({}, store.collection, incoming.collection);  // merge, keep both
+      if (incoming.birth && !store.birth) store.birth = incoming.birth;
+      if (incoming.onboarded) store.onboarded = true;
+      saveStore(store);
+      buildYours(); buildLibrary(); render(); reflectPressed();
+      openAbout();                                   // refresh the count
+      aboutMsg('Collection restored.');
+    }catch(e){ aboutMsg('That file could not be read.'); }
+  };
+  reader.onerror = ()=> aboutMsg('That file could not be read.');
+  reader.readAsText(file);
+}
+function resetCollection(){
+  if (!window.confirm('Erase your whole collection? This cannot be undone.')) return;
+  const store = loadStore(); store.collection = {}; saveStore(store);
+  buildYours(); buildLibrary(); reflectPressed(); openAbout();
+  aboutMsg('Collection cleared.');
+}
+
 /* ---------------- birth moon ---------------- */
 let _pendingBirth = null;
 
@@ -1706,6 +1816,15 @@ document.querySelectorAll('#themeSeg button').forEach(b=>
 
 document.querySelectorAll('#remSeg button').forEach(b=>
   b.addEventListener('click', ()=> setReminderPref(b.dataset.rem === 'on')));
+
+document.getElementById('aboutOpen').addEventListener('click', openAbout);
+document.getElementById('aboutBack').addEventListener('click', closeAbout);
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('resetBtn').addEventListener('click', resetCollection);
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0]; if (f) importData(f); e.target.value = '';
+});
 
 // swipe between views
 let _tx = null;
