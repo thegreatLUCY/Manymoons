@@ -362,6 +362,17 @@
   .about-link.danger:hover{ color:#c87b6a; }
   .about-body{ font-family:var(--serif); font-size:15.5px; line-height:1.6; color:var(--lore-ink); max-width:40ch; }
 
+  /* ---------- any-date lookup ---------- */
+  .lookup-open{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+    border:1px dashed var(--hair); border-radius:14px; padding:16px 18px; margin:4px 0 18px; background:none; color:var(--ink-soft);
+    font-family:var(--serif); font-style:italic; font-size:16px; line-height:1.3; transition:border-color .35s, color .35s; -webkit-tap-highlight-color:transparent; }
+  .lookup-open:hover{ border-color:rgba(244,240,224,.4); color:var(--ink); }
+  .lookup-open .glyph{ font-style:normal; font-size:12px; color:var(--ink-faint); flex:0 0 auto; }
+  #lookup{ position:fixed; inset:0; z-index:11; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    background:var(--onboard-bg); animation:obFade .5s ease both; }
+  #lookup[hidden]{ display:none; }
+  .lookup-back{ position:absolute; top:calc(env(safe-area-inset-top) + 22px); left:24px; z-index:2; color:var(--ink-soft); }
+
   @media (max-height:680px){
     .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
   }
@@ -660,6 +671,36 @@
       <p class="about-body">Lunar surface: NASA / GSFC / Arizona State University (public domain). Set in Cormorant Garamond &amp; Jost.</p>
 
       <input type="file" id="importFile" accept="application/json,.json" hidden />
+    </div>
+  </section>
+
+  <!-- ===================== ANY-DATE LOOKUP ===================== -->
+  <section id="lookup" hidden>
+    <button class="back lookup-back" id="lookupBack" aria-label="Close">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+    </button>
+    <div class="ob-shell">
+      <div class="ob-stage" id="lkAsk">
+        <div class="ob-mark">Many Moons</div>
+        <h2 class="ob-title">Any night,<br>any moon.</h2>
+        <p class="ob-lead">Choose a date — a birthday, an anniversary, a night you remember — and see the moon that hung above it.</p>
+        <div class="ob-fields">
+          <label class="ob-field"><span>Day</span><select id="lkDay" aria-label="Day"></select></label>
+          <label class="ob-field"><span>Month</span><select id="lkMonth" aria-label="Month"></select></label>
+          <label class="ob-field"><span>Year</span><select id="lkYear" aria-label="Year"></select></label>
+        </div>
+        <button class="ob-cta" id="lkReveal">Show this moon</button>
+      </div>
+
+      <div class="ob-stage" id="lkRevealStage" hidden>
+        <div class="ob-eyebrow">The moon on</div>
+        <div class="ob-moon-wrap"><div class="halo"></div><canvas id="lookupMoon"></canvas></div>
+        <h2 class="ob-phase" id="lkPhase">—</h2>
+        <div class="ob-date" id="lkDate">—</div>
+        <p class="ob-lore" id="lkLore">—</p>
+        <button class="ob-cta" id="lkShare">Share this moon</button>
+        <button class="ob-skip" id="lkAgain">Look up another night</button>
+      </div>
     </div>
   </section>
 
@@ -1526,6 +1567,8 @@ function buildLibrary(){
       <div class="coll-bar"><span style="width:${pct}%"></span></div>
     </div>
 
+    <button class="lookup-open" id="lookupOpen"><span class="glyph">✦</span> Look up the moon on any night</button>
+
     <div class="lib-section">Coming up</div>
     <div class="upcoming">
       <button class="up-row" data-kind="named" data-key="${nfName}">
@@ -1595,6 +1638,8 @@ function buildLibrary(){
       }
     }
   });
+
+  const lo = document.getElementById('lookupOpen'); if (lo) lo.addEventListener('click', openLookup);
 
   // tap any coin / phase / upcoming row → open its detail
   wrap.querySelectorAll('[data-kind]').forEach(btn=>{
@@ -1732,6 +1777,34 @@ function resetCollection(){
   const store = loadStore(); store.collection = {}; saveStore(store);
   buildYours(); buildLibrary(); reflectPressed(); openAbout();
   aboutMsg('Collection cleared.');
+}
+
+/* ---------------- any-date lookup (view & share only — never collects) ---------------- */
+let _lookupSubject = null;
+function populateLookupSelects(){
+  const dsel=document.getElementById('lkDay'), msel=document.getElementById('lkMonth'), ysel=document.getElementById('lkYear');
+  const now=new Date(), cy=now.getFullYear();
+  dsel.innerHTML = Array.from({length:31}, (_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+  msel.innerHTML = MON.map((nm,i)=>`<option value="${i}">${nm}</option>`).join('');
+  let ys=''; for (let y=cy+1; y>=1900; y--) ys += `<option value="${y}">${y}</option>`; ysel.innerHTML = ys;  // any night, past or future
+  dsel.value=String(now.getDate()); msel.value=String(now.getMonth()); ysel.value=String(cy);
+}
+function openLookup(){
+  document.getElementById('lkAsk').hidden = false;
+  document.getElementById('lkRevealStage').hidden = true;
+  document.getElementById('lookup').hidden = false;
+}
+function closeLookup(){ document.getElementById('lookup').hidden = true; }
+function revealLookup(){
+  const y=+document.getElementById('lkYear').value, m=+document.getElementById('lkMonth').value, d=+document.getElementById('lkDay').value;
+  const data = birthData(y, m, d);                 // generic date→moon; nothing is stored or collected
+  document.getElementById('lkAsk').hidden = true;
+  document.getElementById('lkRevealStage').hidden = false;
+  renderMoon(document.getElementById('lookupMoon'), data.p);
+  document.getElementById('lkPhase').textContent = data.display;
+  document.getElementById('lkDate').textContent  = data.dateLabel;
+  document.getElementById('lkLore').innerHTML = `<span class="lead">${data.lore.lead}</span> ${data.lore.body}`;
+  _lookupSubject = { p:data.p, name:data.display, dateLabel:data.dateLabel, illum:Math.round(data.illum*100), lead:data.lore.lead, eyebrow:'The moon on' };
 }
 
 /* ---------------- birth moon ---------------- */
@@ -1881,6 +1954,12 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
   const f = e.target.files && e.target.files[0]; if (f) importData(f); e.target.value = '';
 });
 
+document.getElementById('lookupBack').addEventListener('click', closeLookup);
+document.getElementById('lkReveal').addEventListener('click', revealLookup);
+document.getElementById('lkAgain').addEventListener('click', openLookup);
+const _lkShareBtn = document.getElementById('lkShare');
+_lkShareBtn.addEventListener('click', ()=>{ if (_lookupSubject) shareMoonCard(_lookupSubject, _lkShareBtn); });
+
 // swipe between views
 let _tx = null;
 addEventListener('touchstart', e=>{ _tx = e.touches[0].clientX; }, {passive:true});
@@ -1903,6 +1982,7 @@ buildLibrary();
 render();
 reflectPressed();
 populateBirthSelects();
+populateLookupSelects();
 buildYours();
 if (!loadStore().onboarded) openOnboard();
 
