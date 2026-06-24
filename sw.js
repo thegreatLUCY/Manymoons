@@ -1,7 +1,7 @@
 /* Many Moons service worker — offline-capable PWA shell.
    App HTML is served network-first (so updates show when online);
    static assets (textures, icons, fonts) are cache-first.            */
-const CACHE = 'manymoons-v1';
+const CACHE = 'manymoons-v2';
 const ASSETS = [
   './',
   './index.html',
