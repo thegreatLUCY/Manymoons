@@ -273,6 +273,49 @@
   .theme-seg button{ background:none; border:none; cursor:pointer; padding:8px 15px; border-radius:999px; font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); transition:background .35s, color .35s; -webkit-tap-highlight-color:transparent; }
   .theme-seg button.active{ background:var(--surface-soft); color:var(--ink); }
 
+  /* ---------- collection panel (Library) ---------- */
+  .coll-head{ text-align:center; padding:6px 0 2px; }
+  .coll-year{ font-family:var(--serif); font-weight:500; font-size:30px; color:var(--ink); letter-spacing:.02em; }
+  .coll-progress{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-faint); margin-top:9px; }
+  .coll-bar{ width:148px; height:2px; background:var(--hair); border-radius:2px; margin:13px auto 2px; overflow:hidden; }
+  .coll-bar > span{ display:block; height:100%; background:linear-gradient(90deg, rgba(176,194,255,.55), rgba(244,240,224,.9)); border-radius:2px; transition:width .8s cubic-bezier(.2,.7,.2,1); }
+
+  .upcoming{ display:flex; flex-direction:column; }
+  .up-row{ display:flex; align-items:center; gap:16px; padding:14px 4px; border:none; border-bottom:1px solid var(--hair); background:none; cursor:pointer; text-align:left; width:100%; -webkit-tap-highlight-color:transparent; transition:opacity .25s; }
+  .up-row:last-child{ border-bottom:none; }
+  .up-row:active{ opacity:.6; }
+  .up-row canvas{ width:46px; height:46px; flex:0 0 46px; }
+  .up-name{ font-family:var(--serif); font-size:18px; color:var(--ink); }
+  .up-when{ font-family:var(--sans); font-weight:300; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin-top:5px; }
+  .up-when .soon{ color:#cdbd86; }
+
+  .moon-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 6px; padding:6px 0 2px; }
+  .moon-grid.special{ grid-template-columns:repeat(4,1fr); }
+  .coin{ display:flex; flex-direction:column; align-items:center; gap:8px; background:none; border:none; cursor:pointer; padding:10px 4px 12px; border-radius:14px; -webkit-tap-highlight-color:transparent; transition:background .3s; }
+  .coin:hover{ background:var(--surface-soft); }
+  .coin.active{ background:var(--surface-soft); }
+  .coin-wrap{ position:relative; line-height:0; }
+  .coin canvas{ width:60px; height:60px; transition:opacity .35s, filter .35s; }
+  .moon-grid.special .coin canvas{ width:50px; height:50px; }
+  .coin.locked canvas, .coin.absent canvas{ opacity:.24; filter:grayscale(.45); }
+  .coin.absent{ opacity:.6; }
+  .coin.caught .coin-wrap::after{ content:'✦'; position:absolute; right:-3px; top:-3px; font-size:12px; color:#cdbd86; text-shadow:0 0 8px rgba(205,189,134,.6); }
+  .coin .coin-name{ font-family:var(--serif); font-size:15px; color:var(--ink-soft); line-height:1.05; text-align:center; }
+  .coin.caught .coin-name{ color:var(--ink); }
+  .coin .coin-month{ font-family:var(--sans); font-weight:300; font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); }
+
+  .lib-detail{ border:1px solid var(--hair); border-radius:14px; padding:18px 18px 16px; margin:12px 0 4px; background:var(--surface-soft); animation:rise .5s cubic-bezier(.2,.7,.2,1); }
+  .lib-detail[hidden]{ display:none; }
+  .lib-detail .ld-name{ font-family:var(--serif); font-weight:500; font-size:21px; color:var(--ink); }
+  .lib-detail .ld-when{ font-family:var(--sans); font-weight:300; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin:7px 0 12px; }
+  .lib-detail .ld-lore{ font-family:var(--serif); font-size:15.5px; line-height:1.55; color:var(--lore-ink); }
+  .lib-detail .ld-status{ display:inline-block; margin-top:13px; font-family:var(--sans); font-weight:300; font-size:9px; letter-spacing:.2em; text-transform:uppercase; padding:5px 13px; border-radius:999px; border:1px solid var(--hair); color:var(--ink-faint); }
+  .lib-detail .ld-status.caught{ color:#cdbd86; border-color:rgba(205,189,134,.5); }
+
+  .entry-btn{ width:100%; background:none; border:none; border-bottom:1px solid var(--hair); cursor:pointer; text-align:left; -webkit-tap-highlight-color:transparent; transition:opacity .25s; }
+  .entry-btn:active{ opacity:.6; }
+  .lib-note{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.04em; line-height:1.5; color:var(--ink-faint); padding:0 2px 12px; }
+
   @media (max-height:680px){
     .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
   }
@@ -1234,7 +1277,7 @@ function buildYours(){
       <div class="entry-body">
         <div class="entry-eyebrow">✦ Born under</div>
         <div class="entry-name">${b.display}</div>
-        <div class="entry-date">${b.dateLabel}</div>
+        <div class="entry-date">${b.dateLabel}${b.illum!=null?` · ${Math.round(b.illum*100)}% lit`:''}</div>
         <div class="entry-lore">${line}</div>
       </div>
     </article>`;
@@ -1255,7 +1298,7 @@ function buildYours(){
         <canvas class="mini" data-p="${e.p}"></canvas>
         <div class="entry-body">
           <div class="entry-name">${e.display}</div>
-          <div class="entry-date">${e.dateLabel}</div>
+          <div class="entry-date">${e.dateLabel}${e.illum!=null?` · ${Math.round(e.illum*100)}% lit`:''}</div>
           <div class="entry-lore">${line}</div>
         </div>
       </article>`;
@@ -1268,69 +1311,161 @@ function buildYours(){
   if (inv) inv.addEventListener('click', ()=> openOnboard(true));
 }
 
+/* ---------------- collection calendar helpers ---------------- */
+function _frac(tDays){ let p=((tDays-REF_NEWMOON)%SYNODIC)/SYNODIC; if(p<0)p+=1; return p; }
+function nextPhaseDate(targetP, fromMs){           // next date (after now) the cycle hits targetP
+  const t=fromMs/86400000, p=_frac(t);
+  let dd=((targetP-p+1)%1); if(dd<1e-4) dd+=1;
+  return new Date(Math.round((t+dd*SYNODIC)*86400000));
+}
+function fullMoonDatesInYear(year){                 // every full moon whose date lands in `year`
+  const out=[]; let t=Date.UTC(year,0,1)/86400000-2;
+  for(let i=0;i<14;i++){ const p=_frac(t); let dd=((0.5-p+1)%1); if(dd<1e-4)dd+=1; t+=dd*SYNODIC;
+    const d=new Date(Math.round(t*86400000));
+    if(d.getFullYear()>year) break;
+    if(d.getFullYear()===year) out.push(d);
+    t+=0.5;
+  }
+  return out;
+}
+function nightsUntil(date){
+  const a=new Date(); a.setHours(0,0,0,0); const b=new Date(date); b.setHours(0,0,0,0);
+  const n=Math.round((b-a)/86400000);
+  return n<=0?'tonight':n===1?'tomorrow':`in ${n} nights`;
+}
+function caughtNamedSet(year){                      // named full moons pressed in `year`
+  const col=loadStore().collection, set=new Set();
+  for(const k in col){ if(String(k).startsWith(year+'-') && col[k].phase==='Full Moon') set.add(col[k].display); }
+  return set;
+}
+// state shared with the detail panel (set by buildLibrary)
+let _libYear=null, _libMonthFull={}, _libCaught=new Set();
+
+function showLibDetail(kind, key){
+  const el=document.getElementById('libDetail'); if(!el) return;
+  let name='', when='', lore='', caught=false, status='';
+  if(kind==='named'){
+    const c=NAMED_FULL[key]; name=key; lore=c.desc || (c.lead+' '+c.body);
+    const d=_libMonthFull[key];
+    caught=_libCaught.has(key);
+    if(!d){ when='Does not occur in '+_libYear; status='—'; }
+    else { when=fmtDate(d)+' · '+_libYear; status = caught ? 'Caught ✦' : (d<new Date()?'Not caught this year':nightsUntil(d)); }
+  } else if(kind==='special'){
+    const sm=SPECIAL_MOONS.find(s=>s.type===key); name=sm.name; when=sm.meaning; lore=sm.lore.lead+' '+sm.lore.body; status='Rare';
+  } else { // phase
+    name=key; when=PHASE_MEANING[key]; lore=PHASE_DESC[key] || (DECK[key][0].lead+' '+DECK[key][0].body); status='Every month';
+  }
+  el.innerHTML=`<div class="ld-name">${name}</div><div class="ld-when">${when}</div>`+
+    `<div class="ld-lore">${lore}</div>`+
+    `<span class="ld-status${caught?' caught':''}">${status}</span>`;
+  el.hidden=false;
+  document.querySelectorAll('.coin.active').forEach(c=>c.classList.remove('active'));
+}
+
 function buildLibrary(){
   const wrap = document.getElementById('tab-library');
-  let html = `<div class="lib-section">The Eight Phases</div>`;
-  html += PHASE_ORDER.map(name=>{
-    const card = DECK[name][0];
-    return `<article class="entry">
+  const year = new Date().getFullYear();
+  const fulls = fullMoonDatesInYear(year);
+  _libYear = year; _libMonthFull = {}; _libCaught = caughtNamedSet(year);
+  // first full moon per calendar month → its named moon
+  const byMonth = {};
+  fulls.forEach(d=>{ const m=d.getMonth(); if(byMonth[m]===undefined) byMonth[m]=d; });
+  FULL_NAMES.forEach((nm,m)=>{ if(byMonth[m]) _libMonthFull[nm]=byMonth[m]; });
+
+  const caughtCount = FULL_NAMES.filter(nm=>_libCaught.has(nm)).length;
+  const pct = Math.round(caughtCount/12*100);
+
+  // upcoming
+  const now = Date.now();
+  const nf = nextPhaseDate(0.5, now), nn = nextPhaseDate(0, now);
+  const nfName = FULL_NAMES[nf.getMonth()];
+
+  let html = `
+    <div class="coll-head">
+      <div class="coll-year">${year}</div>
+      <div class="coll-progress">caught ${caughtCount} of 12 moons</div>
+      <div class="coll-bar"><span style="width:${pct}%"></span></div>
+    </div>
+
+    <div class="lib-section">Coming up</div>
+    <div class="upcoming">
+      <button class="up-row" data-kind="named" data-key="${nfName}">
+        <canvas class="mini" data-p="0.5"></canvas>
+        <div><div class="up-name">${nfName}</div><div class="up-when"><span class="soon">${nightsUntil(nf)}</span> · ${fmtDate(nf)}</div></div>
+      </button>
+      <button class="up-row" data-kind="phase" data-key="New Moon">
+        <canvas class="mini" data-p="0"></canvas>
+        <div><div class="up-name">New Moon</div><div class="up-when">${nightsUntil(nn)} · ${fmtDate(nn)}</div></div>
+      </button>
+    </div>
+
+    <div class="lib-section">This year’s full moons</div>
+    <div class="lib-note">One full moon each month — twelve to collect across the year.</div>
+    <div class="moon-grid">`;
+  html += FULL_NAMES.map((nm,m)=>{
+    const caught=_libCaught.has(nm), d=_libMonthFull[nm];
+    const cls = !d ? 'absent' : (caught ? 'caught' : 'locked');
+    return `<button class="coin ${cls}" data-kind="named" data-key="${nm}">
+      <div class="coin-wrap"><canvas class="mini" data-p="0.5"></canvas></div>
+      <div class="coin-name">${nm.replace(/ Moon$/,'')}</div>
+      <div class="coin-month">${MON[m].slice(0,3)}${d?'':' · —'}</div>
+    </button>`;
+  }).join('');
+  html += `</div>
+    <div id="libDetail" class="lib-detail" hidden></div>
+
+    <div class="lib-section">Rare moons</div>
+    <div class="moon-grid special">`;
+  html += SPECIAL_MOONS.map(sm=>{
+    const p = sm.type==='black' ? '0' : '0.5';
+    return `<button class="coin special" data-kind="special" data-key="${sm.type}">
+      <div class="coin-wrap"><canvas class="mini" data-p="${p}" data-moon-type="${sm.type}"></canvas></div>
+      <div class="coin-name">${sm.name}</div>
+      <div class="coin-month">rare</div>
+    </button>`;
+  }).join('');
+  html += `</div>
+
+    <div class="lib-section">The eight phases</div>
+    <div class="lib-note">Each comes around once a lunar month — about 12–13 times a year.</div>`;
+  html += PHASE_ORDER.map(name=>`
+    <button class="entry entry-btn" data-kind="phase" data-key="${name}">
       <canvas class="mini" data-p="${PHASE_FRAC[name]}"></canvas>
       <div class="entry-body">
         <div class="entry-name">${name}</div>
         <div class="lib-meaning">${PHASE_MEANING[name]}</div>
-        <div class="entry-lore">“${card.body}” <span class="credit">— ${card.credit}</span></div>
       </div>
-    </article>`;
-  }).join('');
-
-  html += `<div class="lib-section">The Year’s Full Moons</div>`;
-  html += FULL_NAMES.map(nm=>{
-    const c = NAMED_FULL[nm];
-    return `<article class="entry">
-      <canvas class="mini" data-p="0.5"></canvas>
-      <div class="entry-body">
-        <div class="entry-name">${nm}</div>
-        <div class="entry-lore">“${c.body}” <span class="credit">— ${c.credit}</span></div>
-      </div>
-    </article>`;
-  }).join('');
-
-  html += `<div class="lib-section">Rare &amp; Special Moons</div>`;
-  html += SPECIAL_MOONS.map(sm=>{
-    const p = sm.type==='black' ? '0' : '0.5';
-    return `<article class="entry">
-      <canvas class="mini" data-p="${p}" data-moon-type="${sm.type}"></canvas>
-      <div class="entry-body">
-        <div class="entry-name">${sm.name}</div>
-        <div class="lib-meaning">${sm.meaning}</div>
-        <div class="entry-lore">"${sm.lore.lead} ${sm.lore.body}" <span class="credit">— ${sm.lore.credit}</span></div>
-      </div>
-    </article>`;
-  }).join('');
+    </button>`).join('');
 
   wrap.innerHTML = html;
+
+  // render every mini moon
   wrap.querySelectorAll('canvas.mini').forEach(c => {
     const t = c.dataset.moonType;
-    if (t === 'blood'){
-      renderBloodMoon(c);
-    } else {
+    if (t === 'blood'){ renderBloodMoon(c); }
+    else {
       renderMoon(c, parseFloat(c.dataset.p) || 0);
-      // supermoon: extra outer glow to suggest its larger apparent size
       if (t === 'super'){
         const dpr = Math.min(window.devicePixelRatio||1,2);
         const css = c.clientWidth || c.offsetWidth || 54;
-        const px2 = Math.round(css*dpr);
-        const cx2=px2/2, cy2=px2/2, R2=px2*0.47;
-        const ctx2 = c.getContext('2d');
-        ctx2.save();
+        const px2 = Math.round(css*dpr), cx2=px2/2, cy2=px2/2, R2=px2*0.47;
+        const ctx2 = c.getContext('2d'); ctx2.save();
         const sg = ctx2.createRadialGradient(cx2,cy2,R2*0.78,cx2,cy2,R2*1.55);
-        sg.addColorStop(0,  'rgba(252,248,228,0.13)');
-        sg.addColorStop(0.5,'rgba(252,248,228,0.07)');
-        sg.addColorStop(1,  'rgba(252,248,228,0)');
-        ctx2.fillStyle=sg; ctx2.beginPath(); ctx2.arc(cx2,cy2,R2*1.55,0,2*Math.PI); ctx2.fill();
-        ctx2.restore();
+        sg.addColorStop(0,'rgba(252,248,228,0.13)'); sg.addColorStop(0.5,'rgba(252,248,228,0.07)'); sg.addColorStop(1,'rgba(252,248,228,0)');
+        ctx2.fillStyle=sg; ctx2.beginPath(); ctx2.arc(cx2,cy2,R2*1.55,0,2*Math.PI); ctx2.fill(); ctx2.restore();
       }
     }
+  });
+
+  // tap any coin / phase / upcoming row → open its detail
+  wrap.querySelectorAll('[data-kind]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      showLibDetail(btn.dataset.kind, btn.dataset.key);
+      if (btn.classList.contains('coin')){ btn.classList.add('active');
+        const el=document.getElementById('libDetail');
+        if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+      }
+    });
   });
 }
 
