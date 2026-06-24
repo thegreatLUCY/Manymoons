@@ -549,90 +549,110 @@ const FULL_NAMES = ["Wolf Moon","Snow Moon","Worm Moon","Pink Moon","Flower Moon
 const PHASE_ORDER = ["New Moon","Waxing Crescent","First Quarter","Waxing Gibbous","Full Moon","Waning Gibbous","Last Quarter","Waning Crescent"];
 const PHASE_FRAC  = {"New Moon":0.0,"Waxing Crescent":0.14,"First Quarter":0.25,"Waxing Gibbous":0.37,"Full Moon":0.5,"Waning Gibbous":0.63,"Last Quarter":0.75,"Waning Crescent":0.86};
 const PHASE_MEANING = {
-  "New Moon":"The dark from which everything begins again.",
-  "Waxing Crescent":"First light returns — hope, and small beginnings.",
-  "First Quarter":"Half-lit, at the crossroads. A time to decide.",
-  "Waxing Gibbous":"Swelling toward fullness — patience, refinement.",
-  "Full Moon":"The height of the cycle — illumination, release.",
-  "Waning Gibbous":"The light gives itself back — gratitude, sharing.",
-  "Last Quarter":"Letting go of what the full moon revealed.",
-  "Waning Crescent":"The last thinning before the dark — rest, surrender."
+  "New Moon":"The lit face turned away — the dark the cycle begins from.",
+  "Waxing Crescent":"First light climbing the western dusk — beginnings.",
+  "First Quarter":"Half-lit and balanced, a quarter of the way round — decision.",
+  "Waxing Gibbous":"Swelling past half toward whole — patience.",
+  "Full Moon":"Earth between sun and moon, the near side ablaze — culmination.",
+  "Waning Gibbous":"The light begins to give itself back — gratitude.",
+  "Last Quarter":"Half-lit again, the dark gaining — release.",
+  "Waning Crescent":"The last thinning before the dark — rest."
 };
 
+// Each phase's cards are an ordered, night-by-night sequence: because cycleDay
+// advances by one each night, the deck walks forward through the phase in step
+// with the real moon. The four long phases (~7 nights) carry ~7 cards so every
+// night of the stay is distinct and coherent; the brief phases carry fewer.
 const DECK = {
   "New Moon":[
-    {lead:"No moon tonight — only the pull of it.", body:"With sun and moon drawn into a line, the seas rise to their highest “spring” tides — named not for the season, but for the leaping up of the water.", credit:"On the tides"},
-    {lead:"The sky keeps no moon tonight.", body:"Farmers called this the dark of the moon, and trusted it for what grows downward — the root, the seed, the unseen beginning.", credit:"Planting lore"},
-    {lead:"Astronomers call this the conjunction —", body:"sun and moon sharing the same quarter of sky, the near face turned wholly to the dark. Nothing is lost; the light has only gone around.", credit:"On the new moon"},
+    {lead:"Tonight the moon is here — you simply can't see it.", body:"It rides the sky beside the sun, its lit face turned fully away from us. Nothing is missing; the light has only gone around — the dark of the moon, the blank page before the cycle begins again.", credit:"New moon · conjunction"},
+    {lead:"Sun, moon and Earth fall into a line,", body:"and the seas answer, gathering into the month's highest 'spring' tides — named for the leap of the water, not the season. Unseen, the moon still pulls.", credit:"New moon · the tides"},
+    {lead:"This is the moon's quietest hour,", body:"no light to cast, the whole sky given over to the stars. Growers once trusted the dark of the moon for what begins underground — the root, the seed, the not-yet.", credit:"New moon · beginnings"},
   ],
   "Waxing Crescent":[
-    {lead:"A blade of new light returns,", body:"and within its arc the old dark disk faintly glows — what sailors called the old moon in the new moon’s arms. Leonardo saw it first for what it is: the Earth, shining back.", credit:"On earthshine"},
-    {lead:"The thinnest curve of silver.", body:"In Islam its first sighting opens the month — the hilāl, watched for from rooftops and hilltops, a calendar still kept by looking up.", credit:"The Hijri crescent"},
-    {lead:"Catch it quickly, low in the afterglow.", body:"The young moon follows the sun down within the hour; only at dusk, and only briefly, does the new crescent show at all.", credit:"On the young moon"},
-    {lead:"The Greeks gave this curve to Artemis —", body:"the silver bow of the huntress, strung and waiting, the chase only just begun.", credit:"Artemis of the bow"},
-    {lead:"Begin while the moon is growing,", body:"the old gardeners said — sow what you wish to see flourish through the nights of rising light.", credit:"Folk saying"},
-    {lead:"Near the tropics it lies on its back,", body:"a shallow silver bowl. A “wet moon,” the sailors called it — tipped, they swore, to hold the coming rain.", credit:"Sailors’ weather lore"},
-    {lead:"The Māori reckon the month in nights,", body:"a maramataka of named moons that still tells the people when to plant, and when to let the sea rest.", credit:"Maramataka"},
+    {lead:"A thin blade of light returns to the west.", body:"The moon has edged clear of the sun's glare. Look soon after sunset — only days old, it follows the sun down within the hour.", credit:"Waxing crescent · first light"},
+    {lead:"Look closely and the dark part glows faintly —", body:"the whole round of the moon dimly lit. That ashen light is earthshine: sunlight bounced off our own oceans and clouds onto the moon, and back to your eye.", credit:"Waxing crescent · earthshine"},
+    {lead:"A little higher tonight, a little fuller.", body:"Each evening the moon swings about 12° further from the sun, so it sets nearly an hour later and turns a touch more of its lit face our way.", credit:"Waxing crescent · climbing"},
+    {lead:"The curve sharpens into a clean bow.", body:"Sunlight is creeping across the near side from the east; the bright rim you see is lunar morning, the terminator racing slowly westward.", credit:"Waxing crescent · the terminator"},
+    {lead:"Near the tropics it tips onto its back,", body:"a shallow silver bowl. Sailors called it a 'wet moon' — tilted, they swore, to hold the coming rain.", credit:"Waxing crescent · sky lore"},
+    {lead:"Half-light is only days away now.", body:"The crescent thickens toward the first quarter, the moon a quarter of the way around its month-long orbit of Earth.", credit:"Waxing crescent · toward first quarter"},
+    {lead:"The oldest reading of this phase is beginning.", body:"As the light grows, the old gardeners sowed what they hoped would flourish — proof the light always returns, a little more each night.", credit:"Waxing crescent · beginnings"},
   ],
   "First Quarter":[
-    {lead:"Half in light, half in dark —", body:"the moon at its crossroads, rising at noon and setting at midnight, working its growing light against the night.", credit:"On the waxing half"},
-    {lead:"A clean line down the middle.", body:"This straight edge, the terminator, is where the sun is rising across the moon — dawn, seen from a quarter million miles away.", credit:"On the terminator"},
-    {lead:"The old reading of this phase is decision.", body:"Light and dark held in even balance, the moment to choose a direction and lean your weight into it.", credit:"Folk meaning"},
+    {lead:"Exactly half-lit — the moon at its crossroads.", body:"A quarter of the way around its orbit, it rises around noon and sets near midnight, holding light and dark in even balance.", credit:"First quarter · half-lit"},
+    {lead:"A clean, straight line down the middle.", body:"That edge is the terminator — sunrise sweeping across the moon. You are watching lunar dawn from a quarter-million miles away.", credit:"First quarter · the terminator"},
+    {lead:"The old reading of this phase is decision.", body:"Light and dark held even — the moment to choose a direction, and lean your weight into it.", credit:"First quarter · meaning"},
   ],
   "Waxing Gibbous":[
-    {lead:"Almost whole now,", body:"the moon swells a little fuller each night — the slow, patient work of light returning to the darkened face.", credit:"On the waxing moon"},
-    {lead:"The name is from the Latin for a hump —", body:"gibbus. The moon has grown round-shouldered with light: no longer a sliver, not yet a circle.", credit:"On a word"},
-    {lead:"It clears the horizon before dark now,", body:"hanging pale in the blue of late afternoon — daylight’s quiet companion, waiting for its hour.", credit:"On the gibbous moon"},
-    {lead:"Galileo turned his glass to the ragged seam", body:"between the moon’s light and dark, and saw the shadows of mountains — proof, at last, that it was a world and not a lamp.", credit:"Galileo, 1610"},
-    {lead:"To wax is only to grow,", body:"an old word for increase that we keep now almost for the moon alone.", credit:"On “waxing”"},
-    {lead:"In China the days are counted now", body:"toward Mid-Autumn, when families will gather beneath the roundest moon of the year and raise mooncakes to the night.", credit:"Toward Mid-Autumn"},
-    {lead:"There is no hurrying it.", body:"The moon fills at its own pace, a little more each night, asking only that we wait, and watch.", credit:"A reflection"},
+    {lead:"Past half now, swelling toward whole.", body:"'Gibbous' is Latin for humped — the moon grown round-shouldered with light, no longer a half, not yet a circle.", credit:"Waxing gibbous · the word"},
+    {lead:"It clears the horizon before dark,", body:"hanging pale in the blue of late afternoon — daylight's quiet companion, waiting for its hour.", credit:"Waxing gibbous · afternoon moon"},
+    {lead:"Along the ragged light-and-dark seam,", body:"shadows fall longest. Galileo turned his glass here in 1610 and saw mountains — proof, at last, the moon was a world and not a lamp.", credit:"Waxing gibbous · the mountains"},
+    {lead:"Fuller again tonight, and rising sooner.", body:"More than half the near side blazes now; the moon climbs up in mid-afternoon and lingers most of the night.", credit:"Waxing gibbous · rising"},
+    {lead:"The craters begin to flatten out.", body:"As the sun climbs higher over the near side, shadows shrink and the bright rays of young craters like Tycho start to dominate the face.", credit:"Waxing gibbous · high sun"},
+    {lead:"Almost whole — a sliver of dark remains.", body:"A thin crescent of night still clings to the western limb, thinning by the hour toward the full.", credit:"Waxing gibbous · nearly full"},
+    {lead:"The old reading is patience.", body:"There is no hurrying it; the moon fills at its own pace, asking only that we wait, and watch.", credit:"Waxing gibbous · meaning"},
   ],
   "Full Moon":[
-    {lead:"In China they raise mooncakes to Chang’e,", body:"who drank the elixir and rose to the cold palace of the moon — visited only by a jade rabbit, endlessly pounding medicine in the dark.", credit:"Mid-Autumn lore"},
-    {lead:"They once swore the round moon stirs us.", body:"From luna we kept the word lunatic — though the moon, it turns out, only ever lit the way home.", credit:"On “lunacy”"},
-    {lead:"On a night like this, in Japan,", body:"someone might say only tsuki ga kirei — the moon is beautiful, isn’t it — which the story holds was Sōseki’s way of saying I love you.", credit:"Tsuki ga kirei"},
+    {lead:"The whole near side ablaze.", body:"Sun, Earth and moon in a line again — the moon rising as the sun sets, lit head-on so its craters flatten and the great grey seas show plain.", credit:"Full moon · opposition"},
+    {lead:"Bright enough, almost, to read by.", body:"The full moon is some nine times brighter than the half — not twice, but nine — because head-on sunlight erases every shadow on its face.", credit:"Full moon · brightness"},
+    {lead:"The height of the cycle.", body:"From luna we kept the word lunatic, for the old belief the round moon stirs us — though it only ever lit the way home.", credit:"Full moon · meaning"},
   ],
   "Waning Gibbous":[
-    {lead:"The light begins to give itself back.", body:"The old name for these nights is the disseminating moon — the time for sharing abroad what the full moon brought to light.", credit:"On the waning moon"},
-    {lead:"Just past full, it rises later each night,", body:"climbing the sky well after dark — a little diminished, a little more at ease.", credit:"On the waning gibbous"},
-    {lead:"In Japan the moon-gazing lingers.", body:"They still say tsuki ga kirei — the moon is beautiful, isn’t it — which the story holds was Sōseki’s quiet way of saying I love you.", credit:"Tsuki ga kirei"},
-    {lead:"From luna came the word lunatic,", body:"for the old belief that the round moon unsettles the mind — though it only ever lit the way home.", credit:"On “lunacy”"},
-    {lead:"The Norse saw the moon as Máni,", body:"who drives its chariot across the sky, forever fled before the wolf Hati that means, at the end of things, to catch him.", credit:"Máni, Norse myth"},
-    {lead:"Gratitude is the old reading of this phase —", body:"the harvest gathered, the light well spent, the slow turning now toward rest.", credit:"A reflection"},
-    {lead:"Tsukuyomi rules the Japanese night,", body:"born of Izanagi’s right eye and set beside his sister the sun — who turned her face from him, the story says, and so day and night were parted.", credit:"Tsukuyomi, Shinto myth"},
+    {lead:"Just past full, and rising later each night.", body:"The moon now climbs the sky well after dark — a little diminished, a little more at ease. The old name is the disseminating moon.", credit:"Waning gibbous · giving back"},
+    {lead:"A bite of dark on the eastern limb.", body:"The terminator has returned — but now it marks sunset crossing the moon, lunar evening sweeping slowly west to east.", credit:"Waning gibbous · the terminator"},
+    {lead:"Best seen late, or in the morning sky.", body:"Rising well after sunset, the waning moon is often still up at dawn, hanging pale against the blue.", credit:"Waning gibbous · when to look"},
+    {lead:"Shadows creep back across the seas.", body:"As the sun sinks over the near side, crater rims throw long shadows again along the advancing line of night.", credit:"Waning gibbous · long shadows"},
+    {lead:"Smaller again tonight.", body:"Each evening the moon rises about fifty minutes later and shows a little less — the cycle exhaling now.", credit:"Waning gibbous · waning"},
+    {lead:"The Norse saw the moon as Máni,", body:"driving his chariot across the sky, forever fled before the wolf that means, at the end of things, to catch him.", credit:"Waning gibbous · Máni"},
+    {lead:"The old reading is gratitude.", body:"The harvest gathered, the light well spent — the slow turning, now, toward rest.", credit:"Waning gibbous · meaning"},
   ],
   "Last Quarter":[
-    {lead:"Half in light again, half in dark —", body:"but the dark is winning now. The moon rises near midnight and pales into the morning sky, releasing what the full moon revealed.", credit:"On the waning half"},
-    {lead:"Twelve centuries ago Li Bai", body:"raised his cup to the moon and to his own shadow, and wrote: the three of us, until the wine is gone.", credit:"Li Bai, Tang dynasty"},
-    {lead:"This is the threshold phase,", body:"the old turning-point for letting go — settling what is owed, ending what should end, before the dark of the moon.", credit:"Folk meaning"},
+    {lead:"Half-lit again — but the dark is winning.", body:"Three-quarters of the way around its orbit, the moon rises near midnight and pales into the morning sky.", credit:"Last quarter · half-lit"},
+    {lead:"The lit half has switched sides.", body:"Now the eastern half glows and the west lies dark — the mirror of the first quarter, about a week from new.", credit:"Last quarter · the turn"},
+    {lead:"The old reading is release.", body:"The threshold for letting go — settling what is owed, ending what should end, before the dark of the moon.", credit:"Last quarter · meaning"},
   ],
   "Waning Crescent":[
-    {lead:"The moon thins toward sleep.", body:"The Greeks told of Selene, who loved the shepherd Endymion so dearly she begged the gods to keep him forever young — and so, forever dreaming.", credit:"Selene & Endymion"},
-    {lead:"A last paring of light before dawn.", body:"Now the crescent rises just ahead of the sun — the old moon, seen only by those awake in the small hours.", credit:"On the old moon"},
-    {lead:"Earthshine returns to the thinning curve,", body:"the dark disk glowing faintly once more — the whole round of the moon dimly lit by the light of our own world.", credit:"On earthshine"},
-    {lead:"Sappho, on a night like this:", body:"the moon has set, and the Pleiades; it is midnight, the hours go by, and I lie alone.", credit:"Sappho (attributed)"},
-    {lead:"This is the surrendering moon,", body:"the old nights for rest and release — emptying out before the dark, so that the new moon can begin again.", credit:"Folk meaning"},
-    {lead:"In Māori tradition the woman Rona", body:"cursed the moon for hiding its light, and was carried up into it — there still, the story says, with her gourd and her tree.", credit:"Rona, Māori tradition"},
-    {lead:"The last of the light lets go.", body:"In a night or two there will be no moon at all — only the dark, and the promise folded inside it.", credit:"A reflection"},
+    {lead:"A last paring of light before dawn.", body:"The crescent now rises just ahead of the sun — the old moon, seen only by those awake in the small hours.", credit:"Waning crescent · the old moon"},
+    {lead:"Earthshine returns to the thinning curve,", body:"the dark disk glowing faintly once more — the whole round of the moon dimly lit by the light of our own world.", credit:"Waning crescent · earthshine"},
+    {lead:"Thinner tonight, and closer to the sun.", body:"Each morning the moon rises nearer to sunrise, its sliver narrowing toward the coming dark.", credit:"Waning crescent · thinning"},
+    {lead:"It hangs low in the east at first light.", body:"Look toward the sunrise: the old crescent rests just above the glow, fading as the day comes up.", credit:"Waning crescent · before sunrise"},
+    {lead:"The Greeks told of Selene,", body:"who loved the shepherd Endymion so dearly she begged the gods to keep him forever young — and so, forever dreaming.", credit:"Waning crescent · Selene"},
+    {lead:"Almost gone now.", body:"In a night or two there will be no moon at all — only the dark, and the new beginning folded inside it.", credit:"Waning crescent · toward new"},
+    {lead:"The old reading is rest.", body:"The surrendering moon — nights for release, emptying out before the dark, so the cycle can begin again.", credit:"Waning crescent · meaning"},
   ],
 };
 
 // The twelve named full moons — the rare pages. Names are a North American
 // almanac gloss; many trace to Algonquin and other Indigenous peoples.
+// Each named moon has two voices: lead+body is the in-the-moment Tonight card;
+// desc is the calmer field-guide entry shown in the collection's detail panel,
+// so the moon you collect reads differently from the moon you watched.
 const NAMED_FULL = {
-  "Wolf Moon":      {lead:"The Wolf Moon of deep winter.", body:"Named, the almanac says, for the wolves once heard howling through the hungry cold of January nights.", credit:"January · almanac moon names"},
-  "Snow Moon":      {lead:"The Snow Moon.", body:"February’s full moon, for the season’s heaviest snows — and, when the hunting failed, sometimes called the Hunger Moon.", credit:"February · almanac moon names"},
-  "Worm Moon":      {lead:"The Worm Moon.", body:"As March thaws the ground, the earthworm casts appear and the robins return — the old sign that spring has turned the soil.", credit:"March · almanac moon names"},
-  "Pink Moon":      {lead:"The Pink Moon.", body:"Not the moon’s colour but the flower’s — named for wild ground phlox, the moss-pink that carpets the earth in early spring.", credit:"April · almanac moon names"},
-  "Flower Moon":    {lead:"The Flower Moon.", body:"May’s full moon, for the blooms that come now in abundance — the year at its fullest flush of opening.", credit:"May · almanac moon names"},
-  "Strawberry Moon":{lead:"The Strawberry Moon.", body:"An Algonquin name for June’s brief season of gathering the ripening wild strawberries — and the lowest, most golden full moon of the year.", credit:"June · Algonquin moon names"},
-  "Buck Moon":      {lead:"The Buck Moon.", body:"July, when the new antlers of the bucks push out in velvet — the almanac’s mark of high summer.", credit:"July · almanac moon names"},
-  "Sturgeon Moon":  {lead:"The Sturgeon Moon.", body:"Named by the peoples of the Great Lakes for August, when the great sturgeon were most readily caught.", credit:"August · almanac moon names"},
-  "Harvest Moon":   {lead:"The Harvest Moon.", body:"The full moon nearest the autumn equinox, rising soon after sunset for several nights — old lamplight for bringing the crops in late. In China, the Mid-Autumn moon of reunion.", credit:"September · the Harvest Moon"},
-  "Hunter's Moon":  {lead:"The Hunter’s Moon.", body:"October’s full moon, when the game was fat and the fields lay cleared — the time to hunt and lay in meat before the cold.", credit:"October · almanac moon names"},
-  "Beaver Moon":    {lead:"The Beaver Moon.", body:"November, when the beavers finish their lodges against the freeze — and, the almanac says, when the traps were set.", credit:"November · almanac moon names"},
-  "Cold Moon":      {lead:"The Cold Moon.", body:"December’s full moon, riding high and long through the year’s deepest dark — the cold moon of the longest nights.", credit:"December · almanac moon names"},
+  "Wolf Moon":      {lead:"The Wolf Moon, riding high through the long nights.", body:"January's full moon climbs steep and lingers, mirroring the low winter sun. Named, the almanac says, for the wolves once heard howling across the hungry cold.", desc:"The year's first full moon, riding high and long through midwinter nights. Older names keep their own quiet: the Old Moon, and the Moon After Yule.", credit:"January · the Wolf Moon"},
+  "Snow Moon":      {lead:"The Snow Moon.", body:"February's full moon, for the season's heaviest snows. When the hunting failed and the stores ran low, it went by a barer name — the Hunger Moon.", desc:"Full moon of deepest winter, when the snow lies thickest. Lean years gave it a second, harder name — the Hunger Moon.", credit:"February · the Snow Moon"},
+  "Worm Moon":      {lead:"The Worm Moon, near the spring equinox.", body:"As March thaws the ground, earthworm casts appear and the robins return — the old sign that spring has turned the soil, day and night now in balance.", desc:"The full moon of the thaw, falling near the spring equinox as the ground softens and the first creatures stir. Also the Sap Moon, or the Crow Moon.", credit:"March · the Worm Moon"},
+  "Pink Moon":      {lead:"The Pink Moon — though not for any colour in the sky.", body:"It takes its name from wild ground phlox, the moss-pink that carpets the earth in early spring. The moon itself shines its usual white.", desc:"Spring's full moon, named for the first wild phlox rather than any colour of its own. Also the Egg Moon, and the Sprouting-Grass Moon.", credit:"April · the Pink Moon"},
+  "Flower Moon":    {lead:"The Flower Moon.", body:"May's full moon, for the blooms that come now in abundance — the year at its fullest flush of opening.", desc:"The full moon of full spring, when blossom comes in abundance. Older names: the Milk Moon, and the Hare Moon.", credit:"May · the Flower Moon"},
+  "Strawberry Moon":{lead:"The Strawberry Moon — the lowest, most golden of the year.", body:"An Algonquin name for June's brief season of gathering wild strawberries. Near the summer solstice the full moon rides low, and thick horizon air burnishes it amber.", desc:"The lowest full moon of the year, riding near the solstice and often flushed amber at the horizon. Named for June's brief wild-strawberry harvest.", credit:"June · the Strawberry Moon"},
+  "Buck Moon":      {lead:"The Buck Moon.", body:"July, when the new antlers of the bucks push out in velvet — the almanac's mark of high summer.", desc:"High summer's full moon, when bucks grow fresh antlers in velvet. Also the Thunder Moon, for the season's storms.", credit:"July · the Buck Moon"},
+  "Sturgeon Moon":  {lead:"The Sturgeon Moon.", body:"Named by the peoples of the Great Lakes for August, when the great sturgeon of the lakes were most readily caught.", desc:"Late summer's full moon, named by Great Lakes peoples for the season's best sturgeon fishing. Sometimes the Grain, or Green Corn, Moon.", credit:"August · the Sturgeon Moon"},
+  "Harvest Moon":   {lead:"The Harvest Moon — the full moon nearest the autumn equinox.", body:"For several nights running it rises soon after sunset, the day-to-day delay at its shortest — old lamplight for bringing the crops in late. In China, the Mid-Autumn moon of reunion.", desc:"The full moon nearest the autumn equinox. For several nights it rises soon after sunset — extra light to gather the late crops by. In China, the Mid-Autumn moon of reunion.", credit:"September · the Harvest Moon"},
+  "Hunter's Moon":  {lead:"The Hunter's Moon.", body:"October's full moon, when the game was fat and the fields lay cleared. Like the Harvest Moon before it, it rises soon after dusk for several nights — light to hunt by.", desc:"Autumn's full moon over cleared fields, when the game runs fat. Like the Harvest Moon before it, it rises soon after dusk for nights on end.", credit:"October · the Hunter's Moon"},
+  "Beaver Moon":    {lead:"The Beaver Moon.", body:"November, when the beavers finish their lodges against the freeze — and, the almanac says, when the last traps were set before the ice.", desc:"The full moon of late autumn, as the beavers finish their lodges and the first hard frosts arrive. Also the Frost Moon.", credit:"November · the Beaver Moon"},
+  "Cold Moon":      {lead:"The Cold Moon — riding highest and longest of the year.", body:"December's full moon climbs steep and lingers through the longest nights, the low winter-solstice sun mirrored in the moon's high arc.", desc:"The year's last full moon, riding highest and longest over the longest nights. Also the Long Night Moon.", credit:"December · the Cold Moon"},
+};
+
+// Field-guide overviews for the collection detail panel — distinct from the
+// rotating, in-the-moment DECK cards shown on Tonight.
+const PHASE_DESC = {
+  "New Moon":"The moon between Earth and sun, its lit face turned away — invisible for a night or two. The cycle's start, and the darkest skies for stars.",
+  "Waxing Crescent":"A thin, growing sliver low in the west after sunset. About a week long, as the moon climbs away from the sun each night.",
+  "First Quarter":"The right half lit, a quarter of the way through the cycle. High in the evening sky, with craters thrown into sharp relief along its straight edge.",
+  "Waxing Gibbous":"More than half lit and still filling — the week before full. Rises in the afternoon and sets after midnight.",
+  "Full Moon":"Earth between sun and moon, the whole near side lit. Rises at sunset, sets at sunrise — the brightest night of the cycle.",
+  "Waning Gibbous":"Past full and shrinking, still more than half lit. Rises later each night and often lingers into the morning sky.",
+  "Last Quarter":"The left half lit, three-quarters through the cycle. Rises around midnight — good for early-morning craters.",
+  "Waning Crescent":"A thinning sliver before sunrise, the cycle's final week. Earthshine often glows faintly on its dark side.",
 };
 
 // Rare and special moons — not a phase but an event or calendar anomaly.
@@ -641,10 +661,10 @@ const SPECIAL_MOONS = [
   {
     name: 'Blood Moon',
     type: 'blood',
-    meaning: "Earth's shadow, and the light of every horizon.",
+    meaning: "Earth's shadow, painted with every sunrise at once.",
     lore: {
-      lead: "When Earth passes between sun and moon,",
-      body: "its shadow swallows the full face — and yet the moon does not go dark. Sunlight bending around Earth's rim, filtered through every dawn and every dusk at once, washes it in red. A blood moon is every sunrise and sunset on Earth, seen from the moon in a single moment.",
+      lead: "When Earth slips between sun and moon,",
+      body: "its shadow swallows the full face — yet the moon does not go dark. Sunlight bends around Earth's rim, filtered through every dawn and dusk at once, and washes it deep red. A blood moon is every sunrise and sunset on Earth, seen from the moon in a single moment.",
       credit: "Total lunar eclipse",
     },
   },
@@ -653,19 +673,19 @@ const SPECIAL_MOONS = [
     type: 'blue',
     meaning: "Rare only in the counting.",
     lore: {
-      lead: "The second full moon in a calendar month —",
-      body: "which comes around, on average, once every two and a half years. A calendar accident: the moon ignores our months entirely. The phrase 'once in a blue moon' is older than the modern definition, and the moon itself looks no different — just white and full, exceptional only to those who count.",
+      lead: "The second full moon to fall in one calendar month —",
+      body: "which happens, on average, about once every two and a half years. A quirk of our calendar, nothing more: the moon ignores our months entirely. It looks no different — just full and white — exceptional only to those keeping count.",
       credit: "Blue moon",
     },
   },
   {
     name: 'Supermoon',
     type: 'super',
-    meaning: "The moon at its nearest, the tides at their highest.",
+    meaning: "The moon at its nearest — the tides at their highest.",
     lore: {
-      lead: "At perigee, the moon swings a little closer —",
-      body: "some fourteen percent larger in the sky, thirty percent brighter, the full moon at its fullest. The ocean feels it; the tides run higher than usual. To the naked eye it looks much as always — the sky has no ruler — but those who know, look for it.",
-      credit: "Supermoon · perigee full moon",
+      lead: "At perigee the moon swings a little closer to Earth,",
+      body: "up to fourteen percent wider and thirty percent brighter than a distant full moon. The ocean feels it, and the tides run higher than usual. To the naked eye it looks much as always — but those who know, look for it.",
+      credit: "Perigee full moon",
     },
   },
   {
@@ -673,8 +693,8 @@ const SPECIAL_MOONS = [
     type: 'black',
     meaning: "Twice dark in a single month.",
     lore: {
-      lead: "The second new moon in a calendar month —",
-      body: "the dark mirror of the blue moon. No moonlight at all; the sky given entirely to stars. Some traditions call this a time of turning inward — the moon withholding itself, keeping its own counsel before beginning again.",
+      lead: "The second new moon to fall in one calendar month —",
+      body: "the dark mirror of the blue moon. No moonlight at all; the sky given wholly to the stars. Some keep it as a night for turning inward — the moon withholding itself, before it begins again.",
       credit: "Black moon",
     },
   },
