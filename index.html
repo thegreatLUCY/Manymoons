@@ -268,6 +268,8 @@
 
   /* theme switcher — lives at the foot of the Book */
   .theme-switch{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:42px; padding-top:24px; border-top:1px solid var(--hair); }
+  .theme-switch.tight{ margin-top:16px; padding-top:18px; }
+  .set-note{ padding-top:10px; }
   .theme-switch .theme-label{ font-family:var(--sans); font-weight:300; font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-faint); }
   .theme-seg{ display:flex; border:1px solid var(--hair); border-radius:999px; padding:3px; }
   .theme-seg button{ background:none; border:none; cursor:pointer; padding:8px 15px; border-radius:999px; font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); transition:background .35s, color .35s; -webkit-tap-highlight-color:transparent; }
@@ -523,6 +525,15 @@
           <button data-theme-pref="light">Light</button>
         </div>
       </div>
+
+      <div class="theme-switch tight" role="group" aria-label="Nightly reminder">
+        <span class="theme-label">Nightly reminder</span>
+        <div class="theme-seg" id="remSeg">
+          <button data-rem="off">Off</button>
+          <button data-rem="on">On</button>
+        </div>
+      </div>
+      <div class="lib-note set-note">A quiet nudge each evening to catch the night's moon.</div>
     </div>
   </section>
 
@@ -1504,6 +1515,61 @@ function setThemePref(pref){
   applyTheme(pref); updateThemeUI(pref);
 }
 
+/* ---------------- nightly reminder (collect today's moon) ----------------
+   The message is generated per day from that night's actual moon, so the
+   reminder always names what's overhead. Real nightly background delivery
+   needs Capacitor's LocalNotifications (the Play Store build); on plain web
+   the toggle saves the choice and asks permission, and scheduling activates
+   automatically once the native plugin is present.                          */
+const REMINDER_KEY = 'manyMoons.reminder';
+const REMINDER_HOUR = 20;           // 8pm local
+const _PHASE_GLYPH = {"New Moon":"🌑","Waxing Crescent":"🌒","First Quarter":"🌓","Waxing Gibbous":"🌔","Full Moon":"🌕","Waning Gibbous":"🌖","Last Quarter":"🌗","Waning Crescent":"🌘"};
+
+function moonNotification(date){
+  date = date || new Date();
+  const { p, illum } = moonPhase(date);
+  const name = phaseName(p), disp = displayName(name, date), glyph = _PHASE_GLYPH[name] || "🌙";
+  if (name === "Full Moon")
+    return { title:`${glyph} Tonight: the ${disp}`, body:`The full moon of the month — press it to keep it in your collection.` };
+  if (name === "New Moon")
+    return { title:`${glyph} New moon tonight`, body:`The darkest sky of the cycle, and a fresh beginning. Press tonight's moon.` };
+  return { title:`${glyph} Tonight's moon: ${disp}`, body:`${Math.round(illum*100)}% lit and ${p<0.5?'waxing':'waning'} — press it before it's gone.` };
+}
+
+function _capLN(){ return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications; }
+function _reminderIds(){ return Array.from({length:30},(_,i)=>({id:9000+i})); }
+
+async function scheduleReminders(){           // schedule the next 30 nights, each with its own moon
+  const ln = _capLN(); if (!ln) return false;
+  try{
+    await ln.cancel({ notifications:_reminderIds() });
+    const list = [];
+    for (let i=1;i<=30;i++){
+      const d = new Date(); d.setDate(d.getDate()+i); d.setHours(REMINDER_HOUR,0,0,0);
+      const { title, body } = moonNotification(d);
+      list.push({ id:9000+i, title, body, schedule:{ at:d } });
+    }
+    await ln.schedule({ notifications:list });
+    return true;
+  }catch(e){ return false; }
+}
+
+function getReminderPref(){ try{ return localStorage.getItem(REMINDER_KEY) === 'on'; }catch(e){ return false; } }
+function updateReminderUI(on){
+  document.querySelectorAll('#remSeg button').forEach(b => b.classList.toggle('active', (b.dataset.rem==='on')===on));
+}
+async function setReminderPref(on){
+  try{ localStorage.setItem(REMINDER_KEY, on?'on':'off'); }catch(e){}
+  updateReminderUI(on);
+  const ln = _capLN();
+  if (on){
+    if (ln){ try{ await ln.requestPermissions(); }catch(e){} await scheduleReminders(); }
+    else if ('Notification' in window){ try{ await Notification.requestPermission(); }catch(e){} }
+  } else if (ln){
+    try{ await ln.cancel({ notifications:_reminderIds() }); }catch(e){}
+  }
+}
+
 /* ---------------- birth moon ---------------- */
 let _pendingBirth = null;
 
@@ -1638,6 +1704,9 @@ document.querySelectorAll('.seg-btn').forEach(b=> b.addEventListener('click', ()
 document.querySelectorAll('#themeSeg button').forEach(b=>
   b.addEventListener('click', ()=> setThemePref(b.dataset.themePref)));
 
+document.querySelectorAll('#remSeg button').forEach(b=>
+  b.addEventListener('click', ()=> setReminderPref(b.dataset.rem === 'on')));
+
 // swipe between views
 let _tx = null;
 addEventListener('touchstart', e=>{ _tx = e.touches[0].clientX; }, {passive:true});
@@ -1653,6 +1722,8 @@ window.addEventListener('resize', ()=>drawMoon());
 /* ---------------- init ---------------- */
 applyTheme(getThemePref());
 updateThemeUI(getThemePref());
+updateReminderUI(getReminderPref());
+if (getReminderPref()) scheduleReminders();   // top up the schedule when the app opens (native)
 makeStars();
 buildLibrary();
 render();
