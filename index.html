@@ -230,6 +230,23 @@
   }
   @keyframes ringPulse{ 0%,100%{ transform:scale(1); } 22%{ transform:scale(1.12); } }
 
+  .streak{ display:flex; flex-direction:column; align-items:center; gap:9px; margin-bottom:18px;
+    opacity:0; animation:rise 1.4s cubic-bezier(.2,.7,.2,1) 1.35s forwards; }
+  .streak[hidden]{ display:none; }
+  .streak-badge{ display:inline-flex; align-items:center; gap:9px; padding:9px 18px; border-radius:999px;
+    border:1px solid rgba(205,189,134,.55); background:rgba(205,189,134,.10);
+    box-shadow:0 0 24px rgba(205,189,134,.20); }
+  .streak-glyph{ font-size:13px; color:#e7d6a0; }
+  .streak-n{ font-family:var(--serif); font-weight:600; font-size:23px; line-height:1; color:#f0e2b0; }
+  .streak-msg{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); text-align:center; }
+  .streak.alive .streak-badge{ animation:streakPulse 2.6s ease-in-out infinite; }
+  .streak.alive .streak-msg{ color:#e7d6a0; }
+  @keyframes streakPulse{
+    0%,100%{ box-shadow:0 0 22px rgba(205,189,134,.20); transform:scale(1); }
+    50%{     box-shadow:0 0 34px rgba(205,189,134,.45); transform:scale(1.04); }
+  }
+  @media(prefers-reduced-motion:reduce){ .streak.alive .streak-badge{ animation:none; } }
+
   @keyframes rise{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes moonIn{from{opacity:0; transform:translateY(20px) scale(.94);}to{opacity:1; transform:translateY(0) scale(1);}}
 
@@ -518,6 +535,11 @@
         <p class="lore" id="lore">—</p>
         <p class="credit" id="credit"></p>
       </section>
+
+      <div class="streak" id="streak" hidden>
+        <span class="streak-badge"><span class="streak-glyph">✦</span><span class="streak-n" id="streakN">0</span></span>
+        <span class="streak-msg" id="streakMsg"></span>
+      </div>
 
       <button class="press" id="press" aria-label="Press tonight's moon">
         <span class="ring"><span class="bloom"></span><span class="dot"></span></span>
@@ -1341,6 +1363,35 @@ function reflectPressed(){
     document.getElementById('press').classList.add('done');
     document.getElementById('presslabel').textContent = "Pressed · tonight is yours";
   }
+  updateStreak();
+}
+
+// consecutive nights pressed, ending today (or yesterday if tonight isn't pressed yet)
+function currentStreak(){
+  const col = loadStore().collection;
+  let d = new Date(); d.setHours(12,0,0,0);
+  if (!col[dateKey(d)]){ d.setDate(d.getDate()-1); if (!col[dateKey(d)]) return 0; }
+  let n = 0;
+  while (col[dateKey(d)]){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+const _NUMWORD = ["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
+function updateStreak(){
+  const el = document.getElementById('streak'); if (!el) return;
+  const n = currentStreak();
+  if (n < 1){ el.hidden = true; el.classList.remove('alive'); return; }
+  document.getElementById('streakN').textContent = n;
+  const pressedTonight = isPressed(new Date());
+  const word = n <= 10 ? _NUMWORD[n] : n;
+  const msg = document.getElementById('streakMsg');
+  if (pressedTonight){
+    msg.textContent = n === 1 ? 'night one — keep it going' : `${word} nights running`;
+    el.classList.remove('alive');               // calm, celebratory
+  } else {
+    msg.textContent = `keep your ${n}-night streak · press tonight`;
+    el.classList.add('alive');                   // pulse to prompt the press
+  }
+  el.hidden = false;
 }
 
 /* ---------------- compose: Book ---------------- */
@@ -1792,6 +1843,7 @@ document.getElementById('press').addEventListener('click', (e)=>{
   btn.addEventListener('animationend', ()=>btn.classList.remove('blooming'), {once:true});
   document.getElementById('presslabel').textContent = "Pressed · tonight is yours";
   buildYours();
+  updateStreak();
 });
 
 document.getElementById('toBook').addEventListener('click', ()=>setView('book'));
