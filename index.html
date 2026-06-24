@@ -1398,15 +1398,18 @@ function buildYours(){
 
 /* ---------------- collection calendar helpers ---------------- */
 function _frac(tDays){ let p=((tDays-REF_NEWMOON)%SYNODIC)/SYNODIC; if(p<0)p+=1; return p; }
+// snap a UTC instant to local civil noon of its day, so day-counts and month
+// attribution match the rest of the app (which reckons in local civil dates)
+function _civilNoon(ms){ const d=new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0); }
 function nextPhaseDate(targetP, fromMs){           // next date (after now) the cycle hits targetP
   const t=fromMs/86400000, p=_frac(t);
   let dd=((targetP-p+1)%1); if(dd<1e-4) dd+=1;
-  return new Date(Math.round((t+dd*SYNODIC)*86400000));
+  return _civilNoon(Math.round((t+dd*SYNODIC)*86400000));
 }
 function fullMoonDatesInYear(year){                 // every full moon whose date lands in `year`
   const out=[]; let t=Date.UTC(year,0,1)/86400000-2;
   for(let i=0;i<14;i++){ const p=_frac(t); let dd=((0.5-p+1)%1); if(dd<1e-4)dd+=1; t+=dd*SYNODIC;
-    const d=new Date(Math.round(t*86400000));
+    const d=_civilNoon(Math.round(t*86400000));
     if(d.getFullYear()>year) break;
     if(d.getFullYear()===year) out.push(d);
     t+=0.5;
