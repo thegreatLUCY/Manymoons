@@ -231,22 +231,21 @@
   }
   @keyframes ringPulse{ 0%,100%{ transform:scale(1); } 22%{ transform:scale(1.12); } }
 
-  .streak{ display:flex; flex-direction:column; align-items:center; gap:9px; margin-bottom:18px;
+  /* streak — an elegant gold numeral, not a gamey pill */
+  .streak{ display:flex; flex-direction:column; align-items:center; gap:6px; margin:16px 0 26px;
     opacity:0; animation:rise 1.4s cubic-bezier(.2,.7,.2,1) 1.35s forwards; }
   .streak[hidden]{ display:none; }
-  .streak-badge{ display:inline-flex; align-items:center; gap:9px; padding:9px 18px; border-radius:999px;
-    border:1px solid rgba(205,189,134,.55); background:rgba(205,189,134,.10);
-    box-shadow:0 0 24px rgba(205,189,134,.20); }
-  .streak-glyph{ font-size:13px; color:#e7d6a0; }
-  .streak-n{ font-family:var(--serif); font-weight:600; font-size:23px; line-height:1; color:#f0e2b0; }
-  .streak-msg{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); text-align:center; }
-  .streak.alive .streak-badge{ animation:streakPulse 2.6s ease-in-out infinite; }
-  .streak.alive .streak-msg{ color:#e7d6a0; }
-  @keyframes streakPulse{
-    0%,100%{ box-shadow:0 0 22px rgba(205,189,134,.20); transform:scale(1); }
-    50%{     box-shadow:0 0 34px rgba(205,189,134,.45); transform:scale(1.04); }
+  .streak-n{ font-family:var(--serif); font-weight:500; font-size:34px; line-height:.9; letter-spacing:.01em;
+    color:#e9d8a3; text-shadow:0 0 20px rgba(205,189,134,.30); font-variant-numeric:lining-nums; }
+  .streak-msg{ font-family:var(--sans); font-weight:300; font-size:9px; letter-spacing:.36em; text-transform:uppercase;
+    color:var(--ink-faint); padding-left:.36em; }
+  .streak.alive .streak-n{ animation:streakGlow 2.8s ease-in-out infinite; }
+  .streak.alive .streak-msg{ color:#cdbd86; }
+  @keyframes streakGlow{
+    0%,100%{ text-shadow:0 0 16px rgba(205,189,134,.28); transform:scale(1); }
+    50%{     text-shadow:0 0 30px rgba(205,189,134,.6); transform:scale(1.05); }
   }
-  @media(prefers-reduced-motion:reduce){ .streak.alive .streak-badge{ animation:none; } }
+  @media(prefers-reduced-motion:reduce){ .streak.alive .streak-n{ animation:none; } }
 
   @keyframes rise{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes moonIn{from{opacity:0; transform:translateY(20px) scale(.94);}to{opacity:1; transform:translateY(0) scale(1);}}
@@ -335,6 +334,8 @@
   .entry-btn{ width:100%; background:none; border:none; border-bottom:1px solid var(--hair); cursor:pointer; text-align:left; -webkit-tap-highlight-color:transparent; transition:opacity .25s; }
   .entry-btn:active{ opacity:.6; }
   .lib-note{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.04em; line-height:1.5; color:var(--ink-faint); padding:0 2px 12px; }
+  .entry-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .entry-pct{ font-family:var(--sans); font-weight:300; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#cdbd86; white-space:nowrap; flex:0 0 auto; }
 
   /* ---------- About & data ---------- */
   .about-open{ display:block; width:100%; margin-top:22px; background:none; border:none; cursor:pointer;
@@ -373,6 +374,8 @@
     background:var(--onboard-bg); animation:obFade .5s ease both; }
   #lookup[hidden]{ display:none; }
   .lookup-back{ position:absolute; top:calc(env(safe-area-inset-top) + 22px); left:24px; z-index:2; color:var(--ink-soft); }
+  .lk-note{ min-height:14px; margin-top:16px; font-family:var(--sans); font-weight:300; font-size:10.5px; letter-spacing:.06em; color:#c89b6a; }
+  .lk-illum{ font-family:var(--sans); font-weight:300; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:#cdbd86; margin-top:10px; padding-left:.3em; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .7s forwards; }
 
   @media (max-height:680px){
     .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
@@ -549,7 +552,7 @@
       </section>
 
       <div class="streak" id="streak" hidden>
-        <span class="streak-badge"><span class="streak-glyph">✦</span><span class="streak-n" id="streakN">0</span></span>
+        <span class="streak-n" id="streakN">0</span>
         <span class="streak-msg" id="streakMsg"></span>
       </div>
 
@@ -691,6 +694,7 @@
           <label class="ob-field"><span>Year</span><select id="lkYear" aria-label="Year"></select></label>
         </div>
         <button class="ob-cta" id="lkReveal">Show this moon</button>
+        <div class="lk-note" id="lkNote"></div>
       </div>
 
       <div class="ob-stage" id="lkRevealStage" hidden>
@@ -698,6 +702,7 @@
         <div class="ob-moon-wrap"><div class="halo"></div><canvas id="lookupMoon"></canvas></div>
         <h2 class="ob-phase" id="lkPhase">—</h2>
         <div class="ob-date" id="lkDate">—</div>
+        <div class="lk-illum" id="lkIllum">—</div>
         <p class="ob-lore" id="lkLore">—</p>
         <button class="ob-cta" id="lkShare">Share this moon</button>
         <button class="ob-skip" id="lkAgain">Look up another night</button>
@@ -749,6 +754,16 @@ const PHASE_MEANING = {
   "Waning Gibbous":"The light begins to give itself back — gratitude.",
   "Last Quarter":"Half-lit again, the dark gaining — release.",
   "Waning Crescent":"The last thinning before the dark — rest."
+};
+const PHASE_ILLUM = {
+  "New Moon":"0% lit",
+  "Waxing Crescent":"1–49% lit",
+  "First Quarter":"50% lit",
+  "Waxing Gibbous":"51–99% lit",
+  "Full Moon":"100% lit",
+  "Waning Gibbous":"99–51% lit",
+  "Last Quarter":"50% lit",
+  "Waning Crescent":"49–1% lit"
 };
 
 // Each phase's cards are an ordered, night-by-night sequence: because cycleDay
@@ -1279,6 +1294,14 @@ function refreshMoons(){
    handed to the native share sheet (with a download fallback). Every share is
    an ad for the app, so this is the growth loop.                              */
 const _CARD = { w:1080, h:1920 };
+const _ICON_IMG = new Image(); let _ICON_OK = false;
+_ICON_IMG.onload = ()=>{ _ICON_OK = true; };
+_ICON_IMG.src = 'icons/icon-512.png';
+function _roundRect(ctx,x,y,w,h,r){
+  if (ctx.roundRect){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); return; }
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
 function _cardText(ctx, text, x, y, font, color, ls, align){
   ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align || 'center'; ctx.textBaseline = 'alphabetic';
   if ('letterSpacing' in ctx){ ctx.letterSpacing = (ls||0)+'px'; ctx.fillText(text, x, y); ctx.letterSpacing = '0px'; }
@@ -1299,6 +1322,7 @@ async function _ensureCardFonts(){
 }
 async function buildCardCanvas(s){
   await _ensureCardFonts();
+  if (!_ICON_OK){ await new Promise(r=>{ _ICON_IMG.addEventListener('load', r, {once:true}); _ICON_IMG.addEventListener('error', r, {once:true}); setTimeout(r, 1500); }); }
   const { w, h } = _CARD, cx = w/2;
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const ctx = cv.getContext('2d');
@@ -1328,9 +1352,6 @@ async function buildCardCanvas(s){
   renderMoon(mc, s.p, D);                       // high-res off-screen moon
   ctx.drawImage(mc, cx-D/2, moonY-D/2, D, D);
 
-  // wordmark
-  _cardText(ctx, 'MANY MOONS', cx, 150, "300 30px 'Jost',sans-serif", 'rgba(167,173,196,0.9)', 14);
-
   // eyebrow + phase + meta
   if (s.eyebrow) _cardText(ctx, s.eyebrow.toUpperCase(), cx, h*0.595, "300 30px 'Jost',sans-serif", 'rgba(107,114,144,0.95)', 10);
   _cardText(ctx, s.name, cx, h*0.66, "400 92px 'Cormorant Garamond',serif", '#ece7d7', 0.5);
@@ -1349,8 +1370,16 @@ async function buildCardCanvas(s){
     for (const ln of lines){ _cardText(ctx, ln, cx, ly, "italic 400 46px 'Cormorant Garamond',serif", '#ded8c6', 0); ly += 62; }
   }
 
-  // footer
-  _cardText(ctx, 'SAME MOON, WHEREVER YOU ARE', cx, h-110, "300 24px 'Jost',sans-serif", 'rgba(107,114,144,0.9)', 8);
+  // brand lockup — every share is an ad for the app
+  const iconSize = 116, iy = h - 318;
+  if (_ICON_OK){
+    ctx.save(); _roundRect(ctx, cx-iconSize/2, iy, iconSize, iconSize, 27); ctx.clip();
+    ctx.drawImage(_ICON_IMG, cx-iconSize/2, iy, iconSize, iconSize); ctx.restore();
+    ctx.save(); _roundRect(ctx, cx-iconSize/2, iy, iconSize, iconSize, 27);
+    ctx.strokeStyle='rgba(205,189,134,0.35)'; ctx.lineWidth=2; ctx.stroke(); ctx.restore();
+  }
+  _cardText(ctx, 'MANY MOONS', cx, iy+iconSize+54, "400 30px 'Jost',sans-serif", '#ece7d7', 12);
+  _cardText(ctx, 'the moon, every night', cx, iy+iconSize+94, "italic 400 31px 'Cormorant Garamond',serif", 'rgba(167,173,196,0.92)', 1);
   return cv;
 }
 async function shareMoonCard(subject, btn){
@@ -1426,14 +1455,13 @@ function updateStreak(){
   if (n < 1){ el.hidden = true; el.classList.remove('alive'); return; }
   document.getElementById('streakN').textContent = n;
   const pressedTonight = isPressed(new Date());
-  const word = n <= 10 ? _NUMWORD[n] : n;
   const msg = document.getElementById('streakMsg');
   if (pressedTonight){
-    msg.textContent = n === 1 ? 'night one — keep it going' : `${word} nights running`;
+    msg.textContent = n === 1 ? 'first night' : 'night streak';
     el.classList.remove('alive');               // calm, celebratory
   } else {
-    msg.textContent = `keep your ${n}-night streak · press tonight`;
-    el.classList.add('alive');                   // pulse to prompt the press
+    msg.textContent = 'press tonight';           // pulses to prompt the press
+    el.classList.add('alive');
   }
   el.hidden = false;
 }
@@ -1617,7 +1645,7 @@ function buildLibrary(){
     <button class="entry entry-btn" data-kind="phase" data-key="${name}">
       <canvas class="mini" data-p="${PHASE_FRAC[name]}"></canvas>
       <div class="entry-body">
-        <div class="entry-name">${name}</div>
+        <div class="entry-head"><span class="entry-name">${name}</span><span class="entry-pct">${PHASE_ILLUM[name]}</span></div>
         <div class="lib-meaning">${PHASE_MEANING[name]}</div>
       </div>
     </button>`).join('');
@@ -1828,10 +1856,11 @@ function populateLookupSelects(){
   const now=new Date(), cy=now.getFullYear();
   dsel.innerHTML = Array.from({length:31}, (_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
   msel.innerHTML = MON.map((nm,i)=>`<option value="${i}">${nm}</option>`).join('');
-  let ys=''; for (let y=cy+1; y>=1900; y--) ys += `<option value="${y}">${y}</option>`; ysel.innerHTML = ys;  // any night, past or future
+  let ys=''; for (let y=cy; y>=1900; y--) ys += `<option value="${y}">${y}</option>`; ysel.innerHTML = ys;  // past only
   dsel.value=String(now.getDate()); msel.value=String(now.getMonth()); ysel.value=String(cy);
 }
 function openLookup(){
+  const note=document.getElementById('lkNote'); if(note) note.textContent='';
   document.getElementById('lkAsk').hidden = false;
   document.getElementById('lkRevealStage').hidden = true;
   document.getElementById('lookup').hidden = false;
@@ -1839,12 +1868,20 @@ function openLookup(){
 function closeLookup(){ document.getElementById('lookup').hidden = true; }
 function revealLookup(){
   const y=+document.getElementById('lkYear').value, m=+document.getElementById('lkMonth').value, d=+document.getElementById('lkDay').value;
+  const dim = new Date(y, m+1, 0).getDate();
+  const picked = new Date(y, m, Math.min(d, dim), 12, 0, 0);
+  const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
+  if (picked > todayEnd){                            // past only — that night hasn't happened
+    document.getElementById('lkNote').textContent = "That night hasn’t come yet — choose a date in the past.";
+    return;
+  }
   const data = birthData(y, m, d);                 // generic date→moon; nothing is stored or collected
   document.getElementById('lkAsk').hidden = true;
   document.getElementById('lkRevealStage').hidden = false;
   renderMoon(document.getElementById('lookupMoon'), data.p);
   document.getElementById('lkPhase').textContent = data.display;
   document.getElementById('lkDate').textContent  = data.dateLabel;
+  document.getElementById('lkIllum').textContent = `${Math.round(data.illum*100)}% illuminated`;
   document.getElementById('lkLore').innerHTML = `<span class="lead">${data.lore.lead}</span> ${data.lore.body}`;
   _lookupSubject = { p:data.p, name:data.display, dateLabel:data.dateLabel, illum:Math.round(data.illum*100), lead:data.lore.lead, eyebrow:'The moon on' };
 }
