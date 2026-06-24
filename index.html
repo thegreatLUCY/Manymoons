@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#070b16" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" href="icons/icon-192.png" />
 <title>Many Moons</title>
 <script>/* resolve theme before first paint to avoid a flash — dark is the default */(function(){try{var p=localStorage.getItem('manyMoons.theme');document.documentElement.setAttribute('data-theme',p==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1358,8 +1359,10 @@ async function shareMoonCard(subject, btn){
     const cv = await buildCardCanvas(subject);
     const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
     if (!blob) return;
+    const text = `${subject.name} · ${subject.dateLabel}`;
+    if (await _nativeShareImage(blob, text)) return;          // native sheet on Capacitor
     const file = new File([blob], 'many-moons.png', { type:'image/png' });
-    const data = { files:[file], title:'Many Moons', text:`${subject.name} · ${subject.dateLabel}` };
+    const data = { files:[file], title:'Many Moons', text };
     if (navigator.canShare && navigator.canShare({ files:[file] })){
       try{ await navigator.share(data); return; }catch(e){ if (e && e.name === 'AbortError') return; }
     }
@@ -1667,6 +1670,7 @@ function applyTheme(pref){
   document.documentElement.setAttribute('data-theme', t);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', t === 'light' ? '#cabb99' : '#070b16');
+  if (typeof syncStatusBar === 'function') syncStatusBar();
 }
 function updateThemeUI(pref){
   document.querySelectorAll('#themeSeg button').forEach(b =>
@@ -1698,7 +1702,45 @@ function moonNotification(date){
   return { title:`${glyph} Tonight's moon: ${disp}`, body:`${Math.round(illum*100)}% lit and ${p<0.5?'waxing':'waning'} — press it before it's gone.` };
 }
 
-function _capLN(){ return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications; }
+function _capPlugin(name){ const C = window.Capacitor; return C && C.Plugins && C.Plugins[name]; }
+function _isNative(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+function _capLN(){ return _capPlugin('LocalNotifications'); }
+
+// share a generated PNG through the native share sheet (Capacitor); web falls back
+function _blobToB64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); }); }
+async function _nativeShareImage(blob, text){
+  const Fs = _capPlugin('Filesystem'), Sh = _capPlugin('Share');
+  if (!Fs || !Sh) return false;
+  try{
+    const data = await _blobToB64(blob);
+    const w = await Fs.writeFile({ path:`many-moons-${Date.now()}.png`, data, directory:'CACHE' });
+    await Sh.share({ title:'Many Moons', text, url:w.uri });
+    return true;
+  }catch(e){ return false; }
+}
+
+// one-time native wiring (no-op on the web): status bar, splash, Android back button
+function initNativeBridge(){
+  if (!window.Capacitor) return;
+  const Sp = _capPlugin('SplashScreen'); if (Sp){ try{ Sp.hide(); }catch(e){} }
+  syncStatusBar();
+  const App = _capPlugin('App');
+  if (App && App.addListener){
+    App.addListener('backButton', ()=>{
+      const lk = document.getElementById('lookup'), ab = document.getElementById('about');
+      if (lk && !lk.hidden){ closeLookup(); return; }
+      if (ab && !ab.hidden){ closeAbout(); return; }
+      if (document.body.classList.contains('show-book')){ setView('tonight'); return; }
+      try{ App.exitApp(); }catch(e){}
+    });
+  }
+}
+function syncStatusBar(){
+  const Sb = _capPlugin('StatusBar'); if (!Sb) return;
+  const light = document.documentElement.getAttribute('data-theme') === 'light';
+  try{ Sb.setStyle({ style: light ? 'LIGHT' : 'DARK' }); }catch(e){}
+  try{ Sb.setBackgroundColor({ color: light ? '#cabb99' : '#070b16' }); }catch(e){}
+}
 function _reminderIds(){ return Array.from({length:30},(_,i)=>({id:9000+i})); }
 
 async function scheduleReminders(){           // schedule the next 30 nights, each with its own moon
@@ -1986,8 +2028,10 @@ populateLookupSelects();
 buildYours();
 if (!loadStore().onboarded) openOnboard();
 
-// register the service worker (offline + installable PWA)
-if ('serviceWorker' in navigator){
+initNativeBridge();   // status bar, splash, Android back button (no-op on the web)
+
+// register the service worker (offline + installable PWA, web only)
+if ('serviceWorker' in navigator && !_isNative()){
   window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 </script>

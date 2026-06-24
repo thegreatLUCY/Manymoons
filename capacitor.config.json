@@ -1,0 +1,18 @@
+{
+  "appId": "com.manymoons.app",
+  "appName": "Many Moons",
+  "webDir": "www",
+  "backgroundColor": "#070b16",
+  "android": {
+    "backgroundColor": "#070b16"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_moon",
+      "iconColor": "#cdbd86"
+    },
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
