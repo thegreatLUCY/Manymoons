@@ -423,6 +423,14 @@
     font-family:var(--sans); font-weight:400; font-size:9px; letter-spacing:.22em; text-transform:uppercase;
     writing-mode:vertical-rl; color:inherit;
   }
+  /* dusk theme: a warm handle instead of the dark-indigo one */
+  :root[data-theme="light"] .book-tab{
+    background:linear-gradient(90deg, rgba(122,98,60,.5), rgba(92,72,44,.85));
+    border-color:rgba(110,86,50,.55); color:#f5efe1;
+    box-shadow:-8px 0 26px rgba(60,46,22,.28);
+  }
+  :root[data-theme="light"] .book-tab:hover{ background:rgba(78,60,38,.94); color:#fff; }
+  :root[data-theme="light"] .book-tab::before{ box-shadow:-3px 0 24px 3px rgba(196,164,112,.5); }
   @keyframes bookTabIn{
     from{ opacity:0; transform:translateY(-50%) translateX(16px); }
     to{   opacity:1; transform:translateY(-50%) translateX(0); }
