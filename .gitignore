@@ -2,3 +2,7 @@
 preview/
 node_modules/
 www/
+android/.idea/
+android/app/release/
+*.aab
+*.apk
