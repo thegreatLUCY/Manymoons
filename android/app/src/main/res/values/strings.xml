@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Many Moons</string>
+    <string name="title_activity_main">Many Moons</string>
+    <string name="package_name">com.manymoons.app</string>
+    <string name="custom_url_scheme">com.manymoons.app</string>
+</resources>

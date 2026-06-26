@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1024px;height:500px;overflow:hidden;}
+  .fg{
+    position:relative; width:1024px; height:500px; display:flex; align-items:center;
+    background:
+      radial-gradient(120% 120% at 78% 50%, rgba(58,79,135,0.45) 0%, rgba(20,29,56,0) 55%),
+      linear-gradient(120deg, #05080f 0%, #0a0e1c 55%, #141d38 100%);
+    font-family:'Jost',sans-serif; color:#ece7d7; overflow:hidden;
+  }
+  .stars{position:absolute;inset:0;}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#eef2ff;box-shadow:0 0 5px rgba(238,242,255,.7);}
+  .copy{ position:relative; z-index:2; padding:0 0 0 78px; max-width:560px; }
+  .wordmark{ font-family:'Cormorant Garamond',serif; font-weight:500; font-size:82px; line-height:1; letter-spacing:.01em; }
+  .tag{ font-family:'Cormorant Garamond',serif; font-style:italic; font-size:30px; color:#cbd0e4; margin-top:14px; }
+  .feats{ font-family:'Jost',sans-serif; font-weight:300; font-size:16px; letter-spacing:.22em; text-transform:uppercase; color:#9aa0bd; margin-top:26px; }
+  .moonwrap{ position:absolute; right:64px; top:50%; transform:translateY(-50%); width:360px; height:360px; z-index:1; }
+  .halo{ position:absolute; inset:-22%; border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(244,240,224,.30) 0%, rgba(140,160,220,.10) 40%, rgba(58,79,135,0) 68%); }
+  .moon{ position:relative; width:360px; height:360px; border-radius:50%; display:block;
+    box-shadow:0 0 60px rgba(228,224,206,.18); object-fit:cover; }
+</style>
+</head>
+<body>
+  <div class="fg">
+    <div class="stars" id="stars"></div>
+    <div class="copy">
+      <div class="wordmark">Many&nbsp;Moons</div>
+      <div class="tag">the moon overhead, every night</div>
+      <div class="feats">Phases · Lore · A Collection to Keep</div>
+    </div>
+    <div class="moonwrap"><div class="halo"></div><img class="moon" src="../textures/moon.webp" alt="moon" /></div>
+  </div>
+  <script>
+    let h='';for(let i=0;i<60;i++){const x=(Math.random()*70).toFixed(1),y=(Math.random()*100).toFixed(1),o=(0.15+Math.random()*0.6).toFixed(2),s=(0.5+Math.random()*1.6).toFixed(2);h+=`<span class="star" style="left:${x}%;top:${y}%;opacity:${o};transform:scale(${s})"></span>`;}
+    document.getElementById('stars').innerHTML=h;
+  </script>
+</body>
+</html>
