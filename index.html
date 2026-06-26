@@ -245,6 +245,43 @@
   @keyframes streakGlow{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
   @media(prefers-reduced-motion:reduce){ .streak.alive .streak-n{ animation:none; } }
 
+  /* next-moon anticipation chip under the date */
+  .tonight-next{ display:inline-flex; align-items:center; gap:7px; margin-top:14px;
+    background:none; border:1px solid var(--hair); border-radius:999px; padding:7px 15px; cursor:pointer;
+    font-family:var(--sans); font-weight:300; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);
+    opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .5s forwards; transition:border-color .3s, color .3s; -webkit-tap-highlight-color:transparent; }
+  .tonight-next[hidden]{ display:none; }
+  .tonight-next:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .tonight-next .tn-dot{ color:#cdbd86; font-size:11px; }
+
+  /* save toast */
+  .toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 28px); transform:translateX(-50%) translateY(22px);
+    z-index:24; max-width:78vw; width:max-content; background:rgba(16,22,42,.97); border:1px solid var(--hair); border-radius:14px;
+    padding:13px 20px; font-family:var(--serif); font-size:15.5px; line-height:1.4; color:#ece7d7; text-align:center;
+    box-shadow:0 14px 44px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .4s ease, transform .45s cubic-bezier(.2,.7,.2,1); }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; cursor:pointer; }
+  .toast[hidden]{ display:none; }
+
+  /* notification priming prompt */
+  #notifyPrompt{ position:fixed; inset:0; z-index:32; display:grid; place-items:center; }
+  #notifyPrompt[hidden]{ display:none; }
+  .np-scrim{ position:absolute; inset:0; background:rgba(4,6,12,.7); animation:obFade .35s ease; }
+  .np-card{ position:relative; z-index:1; width:min(86vw,330px); text-align:center;
+    background:rgba(16,22,42,.98); border:1px solid var(--hair); border-radius:20px; padding:28px 24px 22px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6); animation:rise .45s cubic-bezier(.2,.7,.2,1); }
+  .np-glyph{ font-size:30px; line-height:1; }
+  .np-title{ font-family:var(--serif); font-weight:500; font-size:23px; color:var(--ink); margin-top:14px; }
+  .np-text{ font-family:var(--serif); font-size:16px; line-height:1.55; color:var(--lore-ink); margin-top:12px; }
+  .np-yes{ display:block; width:100%; margin-top:22px; cursor:pointer;
+    background:rgba(205,189,134,.14); border:1px solid rgba(205,189,134,.5); border-radius:999px; padding:14px;
+    font-family:var(--sans); font-weight:300; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:#e9d8a3;
+    transition:background .3s, border-color .3s; -webkit-tap-highlight-color:transparent; }
+  .np-yes:hover{ background:rgba(205,189,134,.22); }
+  .np-no{ display:block; width:100%; margin-top:10px; background:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint);
+    padding:10px; transition:color .3s; -webkit-tap-highlight-color:transparent; }
+  .np-no:hover{ color:var(--ink-soft); }
+
   @keyframes rise{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes moonIn{from{opacity:0; transform:translateY(20px) scale(.94);}to{opacity:1; transform:translateY(0) scale(1);}}
 
@@ -340,6 +377,15 @@
     font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.22em; text-transform:uppercase;
     color:var(--ink-faint); padding:10px; transition:color .3s; -webkit-tap-highlight-color:transparent; }
   .about-open:hover{ color:var(--ink-soft); }
+  /* settings gear — floats in the Book's bottom-right corner */
+  .settings-fab{ position:fixed; right:20px; bottom:calc(env(safe-area-inset-bottom) + 20px); z-index:5;
+    width:46px; height:46px; border-radius:50%; display:none; place-items:center; cursor:pointer;
+    background:var(--glass-strong); border:1px solid var(--hair); color:var(--ink-soft);
+    box-shadow:0 6px 22px rgba(0,0,0,.32); -webkit-tap-highlight-color:transparent; transition:color .3s, transform .3s; }
+  .settings-fab:hover{ color:var(--ink); }
+  .settings-fab:active{ transform:scale(.92); }
+  body.show-book .settings-fab{ display:grid; }
+  .about-footer{ text-align:center; margin-top:34px; font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint); }
   #about{ position:fixed; inset:0; z-index:11; overflow-y:auto; -webkit-overflow-scrolling:touch;
     background:var(--onboard-bg); animation:obFade .5s ease both; }
   #about[hidden]{ display:none; }
@@ -470,6 +516,30 @@
   .ob-mark{ font-family:var(--sans); font-weight:300; font-size:10.5px; letter-spacing:.6em; text-transform:uppercase; color:var(--ink-soft); padding-left:.6em; opacity:0; animation:rise 1.1s cubic-bezier(.2,.7,.2,1) .15s forwards; }
   .ob-title{ margin-top:30px; font-weight:400; font-size:clamp(27px,8vw,34px); line-height:1.12; color:var(--ink); opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .3s forwards; }
   .ob-lead{ margin-top:18px; font-style:italic; font-size:clamp(15.5px,4.6vw,18px); line-height:1.6; color:var(--ink-soft); max-width:27ch; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .5s forwards; }
+  .ob-lead em{ font-style:italic; color:#cdbd86; }
+  .ob-sub{ margin-top:20px; font-family:var(--serif); font-size:clamp(14.5px,4.2vw,16.5px); line-height:1.6; color:var(--lore-ink); max-width:30ch; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .68s forwards; }
+  .ob-welcome .ob-moon-wrap{ margin:22px 0 6px; }
+
+  /* ---------- first-run coach marks ---------- */
+  #coach{ position:fixed; inset:0; z-index:30; }
+  #coach[hidden]{ display:none; }
+  .coach-scrim{ position:absolute; inset:0; background:rgba(4,6,12,.66); animation:obFade .35s ease; }
+  .coach-ring{ position:absolute; border:2px solid rgba(205,189,134,.9); border-radius:50%;
+    box-shadow:0 0 0 4px rgba(205,189,134,.16), 0 0 28px rgba(205,189,134,.55); pointer-events:none;
+    animation:coachPulse 1.8s ease-in-out infinite; }
+  @keyframes coachPulse{ 0%,100%{ transform:scale(1); opacity:.92; } 50%{ transform:scale(1.09); opacity:1; } }
+  .coach-arrow{ position:absolute; color:#cdbd86; font-size:24px; line-height:1; pointer-events:none;
+    text-shadow:0 0 12px rgba(205,189,134,.6); animation:coachPulse 1.8s ease-in-out infinite; }
+  .coach-pop{ position:absolute; max-width:264px; background:rgba(16,22,42,.97); border:1px solid var(--hair);
+    border-radius:16px; padding:17px 19px; box-shadow:0 14px 46px rgba(0,0,0,.55); animation:rise .4s cubic-bezier(.2,.7,.2,1); }
+  .coach-eyebrow{ font-family:var(--sans); font-weight:300; font-size:9px; letter-spacing:.3em; text-transform:uppercase; color:#cdbd86; margin-bottom:8px; }
+  .coach-text{ font-family:var(--serif); font-size:17.5px; line-height:1.45; color:#ece7d7; }
+  .coach-actions{ display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
+  .coach-dots{ font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.2em; color:var(--ink-faint); }
+  .coach-next{ background:none; border:1px solid rgba(214,222,255,.3); border-radius:999px; padding:8px 18px;
+    font-family:var(--sans); font-weight:300; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink); cursor:pointer;
+    transition:border-color .3s, background .3s; -webkit-tap-highlight-color:transparent; }
+  .coach-next:hover{ border-color:rgba(244,240,224,.6); background:rgba(244,240,224,.05); }
 
   .ob-fields{ display:flex; gap:13px; margin-top:38px; width:100%; max-width:340px; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .72s forwards; }
   .ob-field{ flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
@@ -483,6 +553,12 @@
   }
   .ob-field select:focus{ outline:none; border-bottom-color:var(--ink-soft); background:var(--surface-soft); }
   .ob-field select option{ background:var(--option-bg); color:var(--ink); }
+  .ob-field.wide{ flex:1; max-width:260px; margin:0 auto; }
+  .ob-dateinput{ width:100%; appearance:none; -webkit-appearance:none; background:var(--surface-soft);
+    border:none; border-bottom:1px solid var(--hair); color:var(--ink); font-family:var(--serif); font-size:18px;
+    padding:12px 8px; text-align:center; border-radius:7px 7px 0 0; cursor:pointer; transition:border-color .35s, background .35s; }
+  .ob-dateinput:focus{ outline:none; border-bottom-color:var(--ink-soft); }
+  .ob-dateinput::-webkit-calendar-picker-indicator{ filter:invert(.65); cursor:pointer; }
 
   .ob-cta{
     margin-top:42px; background:none; cursor:pointer;
@@ -542,6 +618,7 @@
       <header class="masthead">
         <div class="wordmark">Many Moons</div>
         <div class="date" id="date">—</div>
+        <button class="tonight-next" id="tonightNext" hidden></button>
       </header>
 
       <section class="moon-stage">
@@ -590,25 +667,14 @@
       <div class="tab" id="tab-yours"></div>
       <div class="tab" id="tab-library" hidden></div>
 
-      <div class="theme-switch" role="group" aria-label="Theme">
-        <span class="theme-label">Theme</span>
-        <div class="theme-seg" id="themeSeg">
-          <button data-theme-pref="dark">Dark</button>
-          <button data-theme-pref="light">Light</button>
-        </div>
-      </div>
-
-      <div class="theme-switch tight" role="group" aria-label="Nightly reminder">
-        <span class="theme-label">Nightly reminder</span>
-        <div class="theme-seg" id="remSeg">
-          <button data-rem="off">Off</button>
-          <button data-rem="on">On</button>
-        </div>
-      </div>
-      <div class="lib-note set-note">A quiet nudge each evening to catch the night's moon.</div>
-
-      <button class="about-open" id="aboutOpen">About &amp; your data</button>
     </div>
+
+    <button class="settings-fab" id="settingsFab" aria-label="Settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <circle cx="12" cy="12" r="3.2"/>
+        <path d="M12 2.6v2.4M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12h2.4M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/>
+      </svg>
+    </button>
   </section>
 
   <!-- ===================== BOOK TAB ===================== -->
@@ -622,15 +688,23 @@
   <!-- ===================== ONBOARD: BIRTH MOON ===================== -->
   <section id="onboard" hidden>
     <div class="ob-shell">
+      <!-- stage 0: welcome -->
+      <div class="ob-stage ob-welcome" id="obWelcome">
+        <div class="ob-mark">Many Moons</div>
+        <div class="ob-moon-wrap"><div class="halo"></div><canvas id="welcomeMoon"></canvas></div>
+        <h2 class="ob-title">Look up.</h2>
+        <p class="ob-lead" id="obWelcomeLead">—</p>
+        <p class="ob-sub">Each phase, its lore, and the nights you keep.</p>
+        <button class="ob-cta" id="obStart">Begin</button>
+      </div>
+
       <!-- stage 1: ask -->
-      <div class="ob-stage ob-ask" id="obAsk">
+      <div class="ob-stage ob-ask" id="obAsk" hidden>
         <div class="ob-mark">Many Moons</div>
         <h2 class="ob-title">Every life begins<br>beneath a moon.</h2>
         <p class="ob-lead">Tell me the night you were born, and I’ll show you the moon that hung above it.</p>
         <div class="ob-fields">
-          <label class="ob-field"><span>Day</span><select id="obDay" aria-label="Day of birth"></select></label>
-          <label class="ob-field"><span>Month</span><select id="obMonth" aria-label="Month of birth"></select></label>
-          <label class="ob-field"><span>Year</span><select id="obYear" aria-label="Year of birth"></select></label>
+          <label class="ob-field wide"><span>Your birth date</span><input type="date" id="obBirthDate" class="ob-dateinput" aria-label="Birth date" /></label>
         </div>
         <button class="ob-cta" id="obReveal">Reveal my moon</button>
         <button class="ob-skip" id="obSkip">Not now</button>
@@ -652,6 +726,35 @@
     </div>
   </section>
 
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- ===================== NOTIFICATION PRIMING (after first press) ===================== -->
+  <div id="notifyPrompt" hidden>
+    <div class="np-scrim" id="npScrim"></div>
+    <div class="np-card">
+      <div class="np-glyph">🌙</div>
+      <h3 class="np-title">Your first moon, kept ✦</h3>
+      <p class="np-text">Want a quiet nightly reminder — so you never miss the next moon, or break your streak?</p>
+      <button class="np-yes" id="npYes">Remind me each night</button>
+      <button class="np-no" id="npNo">Maybe later</button>
+    </div>
+  </div>
+
+  <!-- ===================== FIRST-RUN COACH MARKS ===================== -->
+  <div id="coach" hidden>
+    <div class="coach-scrim" id="coachScrim"></div>
+    <div class="coach-ring" id="coachRing"></div>
+    <div class="coach-arrow" id="coachArrow"></div>
+    <div class="coach-pop" id="coachPop">
+      <div class="coach-eyebrow" id="coachEyebrow"></div>
+      <div class="coach-text" id="coachText"></div>
+      <div class="coach-actions">
+        <span class="coach-dots" id="coachDots"></span>
+        <button class="coach-next" id="coachNext">Next</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== ABOUT & DATA ===================== -->
   <section id="about" hidden>
     <div class="about-shell">
@@ -659,12 +762,32 @@
         <button class="back" id="aboutBack" aria-label="Back to your book">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <div class="book-title">About</div>
+        <div class="book-title">Settings</div>
       </header>
 
-      <div class="about-mark">Many Moons</div>
-      <p class="about-tag">A quiet companion for the moon overhead — tonight’s phase, and the stories the world has told about it.</p>
-      <div class="about-ver">Version 1.0</div>
+      <div class="lib-section">Preferences</div>
+      <div class="theme-switch tight" role="group" aria-label="Theme">
+        <span class="theme-label">Theme</span>
+        <div class="theme-seg" id="themeSeg">
+          <button data-theme-pref="dark">Dark</button>
+          <button data-theme-pref="light">Light</button>
+        </div>
+      </div>
+      <div class="theme-switch tight" role="group" aria-label="Chime on save">
+        <span class="theme-label">Chime on save</span>
+        <div class="theme-seg" id="soundSeg">
+          <button data-sound="off">Off</button>
+          <button data-sound="on">On</button>
+        </div>
+      </div>
+      <div class="theme-switch tight" role="group" aria-label="Nightly reminder">
+        <span class="theme-label">Nightly reminder</span>
+        <div class="theme-seg" id="remSeg">
+          <button data-rem="off">Off</button>
+          <button data-rem="on">On</button>
+        </div>
+      </div>
+      <div class="lib-note set-note">A quiet nudge each evening to catch the night's moon.</div>
 
       <div class="lib-section">Your collection</div>
       <div class="about-count" id="aboutCount">—</div>
@@ -681,6 +804,8 @@
 
       <div class="lib-section">Imagery &amp; type</div>
       <p class="about-body">Lunar surface: NASA / GSFC / Arizona State University (public domain). Set in Cormorant Garamond &amp; Jost.</p>
+
+      <div class="about-footer">Many Moons · Version 1.0</div>
 
       <input type="file" id="importFile" accept="application/json,.json" hidden />
     </div>
@@ -1294,6 +1419,8 @@ function refreshMoons(){
   const yrs = document.getElementById('tab-yours');   if (yrs && yrs.childElementCount) buildYours();
   const bm = document.getElementById('birthMoon');
   if (bm && _birthP != null && !document.getElementById('obRevealStage').hidden) renderMoon(bm, _birthP);
+  const wm = document.getElementById('welcomeMoon');
+  if (wm && _welcomeP != null && !document.getElementById('obWelcome').hidden) renderMoon(wm, _welcomeP);
 }
 
 /* ---------------- shareable moon card ----------------
@@ -1429,8 +1556,25 @@ function render(){
   document.getElementById('phase').textContent = displayName(name, now);
 
   const pct = Math.round(illum * 100);
-  const word = (p < 0.02 || p > 0.98) ? "new" : (Math.abs(p-0.5) < 0.02) ? "full" : (p < 0.5 ? "waxing" : "waning");
-  document.getElementById('illum').textContent = `${pct}% lit · ${word}`;
+  // plain-language state (so a moon novice understands what's happening)
+  let human;
+  if (name === 'New Moon') human = 'new moon tonight';
+  else if (name === 'Full Moon') human = 'full moon tonight';
+  else if (p < 0.5){ const n = nightsUntil(nextPhaseDate(0.5, Date.now())); human = (n==='tonight') ? 'full tonight' : 'full ' + n; }
+  else { const n = nightsUntil(nextPhaseDate(0, Date.now())); human = (n==='tonight') ? 'new tonight' : 'new ' + n; }
+  document.getElementById('illum').textContent = `${pct}% lit · ${human}`;
+
+  // next-full-moon anticipation + entry to the collection (a reason to return)
+  const tn = document.getElementById('tonightNext');
+  if (tn){
+    if (name === 'Full Moon'){
+      tn.innerHTML = `<span class="tn-dot">🌕</span> Tonight is the ${displayName(name, now)} — press to keep it`;
+    } else {
+      const nf = nextPhaseDate(0.5, Date.now()), nfName = FULL_NAMES[nf.getMonth()], nu = nightsUntil(nf);
+      tn.innerHTML = `<span class="tn-dot">✦</span> Next full moon · the ${nfName} · ${nu}`;
+    }
+    tn.hidden = false;
+  }
 
   const card = pickLore(name, now);
   document.getElementById('lore').innerHTML = `<span class="lead">${card.lead}</span> ${card.body}`;
@@ -1524,7 +1668,7 @@ function buildYours(){
   wrap.innerHTML = html;
   wrap.querySelectorAll('canvas.mini').forEach(c => renderMoon(c, parseFloat(c.dataset.p)));
   const inv = document.getElementById('birthInvite');
-  if (inv) inv.addEventListener('click', ()=> openOnboard(true));
+  if (inv) inv.addEventListener('click', openBirth);
 }
 
 /* ---------------- collection calendar helpers ---------------- */
@@ -1696,6 +1840,7 @@ function buildLibrary(){
 function setView(v){
   if (v === 'book') buildYours();
   document.body.classList.toggle('show-book', v === 'book');
+  if (v === 'book' && !libHinted() && coached()) setTimeout(showLibraryHint, 720);  // contextual Library hint, once
 }
 
 /* ---------------- theme (dark default · light is opt-in) ---------------- */
@@ -1716,6 +1861,53 @@ function setThemePref(pref){
   try{ localStorage.setItem(THEME_KEY, pref); }catch(e){}
   applyTheme(pref); updateThemeUI(pref);
 }
+
+/* ---------------- save chime + haptic + toast ---------------- */
+const SOUND_KEY = 'manyMoons.sound';
+function soundOn(){ try{ return localStorage.getItem(SOUND_KEY) !== 'off'; }catch(e){ return true; } }  // default on
+let _actx = null;
+function playKeepChime(){
+  if (!soundOn()) return;
+  try{
+    _actx = _actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (_actx.state === 'suspended') _actx.resume();
+    const t = _actx.currentTime;
+    [[659.25, 0], [987.77, 0.11]].forEach(([f, dt])=>{        // a soft E5 → B5 bell
+      const o = _actx.createOscillator(), g = _actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.13, t + dt + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 1.0);
+      o.connect(g).connect(_actx.destination);
+      o.start(t + dt); o.stop(t + dt + 1.05);
+    });
+  }catch(e){}
+}
+function buzz(){ try{ if (navigator.vibrate) navigator.vibrate(14); }catch(e){} }
+function updateSoundUI(on){ document.querySelectorAll('#soundSeg button').forEach(b => b.classList.toggle('active', (b.dataset.sound==='on')===on)); }
+function setSoundPref(on){
+  try{ localStorage.setItem(SOUND_KEY, on ? 'on' : 'off'); }catch(e){}
+  updateSoundUI(on);
+  if (on) playKeepChime();   // preview the chime when turning it on
+}
+
+let _toastT = 0;
+function showToast(text, toBook){
+  const el = document.getElementById('toast'); if (!el) return;
+  el.textContent = text; el.hidden = false;
+  requestAnimationFrame(()=> el.classList.add('show'));
+  el.onclick = toBook ? (()=>{ setView('book'); hideToast(); }) : hideToast;
+  clearTimeout(_toastT); _toastT = setTimeout(hideToast, text.length > 40 ? 4400 : 2600);
+}
+function hideToast(){ const el = document.getElementById('toast'); if (el) el.classList.remove('show'); }
+
+/* ---------------- notification priming (soft ask after first press) ---------------- */
+const NOTIFY_KEY = 'manyMoons.notifyAsked';
+function notifyAsked(){ try{ return localStorage.getItem(NOTIFY_KEY) === '1'; }catch(e){ return true; } }
+function setNotifyAsked(){ try{ localStorage.setItem(NOTIFY_KEY, '1'); }catch(e){} }
+function canAskNotify(){ return !notifyAsked() && !getReminderPref(); }
+function showNotifyPrompt(){ document.getElementById('notifyPrompt').hidden = false; }
+function closeNotifyPrompt(){ document.getElementById('notifyPrompt').hidden = true; setNotifyAsked(); }
 
 /* ---------------- nightly reminder (collect today's moon) ----------------
    The message is generated per day from that night's actual moon, so the
@@ -1815,6 +2007,7 @@ function openAbout(){
   const n = Object.keys(loadStore().collection).length;
   document.getElementById('aboutCount').textContent = n ? `${n} ${n===1?'moon':'moons'} pressed` : 'No moons pressed yet';
   document.getElementById('aboutMsg').textContent = '';
+  updateThemeUI(getThemePref()); updateSoundUI(soundOn()); updateReminderUI(getReminderPref());
   document.getElementById('about').hidden = false;
 }
 function closeAbout(){ document.getElementById('about').hidden = true; }
@@ -1913,25 +2106,38 @@ function birthData(y, m, d){                       // m: 0-based month
 }
 
 function populateBirthSelects(){
-  const dsel = document.getElementById('obDay');
-  const msel = document.getElementById('obMonth');
-  const ysel = document.getElementById('obYear');
-  const now = new Date(), cy = now.getFullYear();
-  dsel.innerHTML = Array.from({length:31}, (_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
-  msel.innerHTML = MON.map((nm,i)=>`<option value="${i}">${nm}</option>`).join('');
-  let ys = ''; for (let y = cy; y >= 1920; y--) ys += `<option value="${y}">${y}</option>`; ysel.innerHTML = ys;
-  // gentle defaults
-  dsel.value = String(now.getDate());
-  msel.value = String(now.getMonth());
-  ysel.value = String(cy - 25);
+  const di = document.getElementById('obBirthDate'); if (!di) return;
+  const now = new Date(), pad = n => String(n).padStart(2,'0');
+  di.max = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;   // no future birthdays
+  di.min = '1920-01-01';
+  di.value = `${now.getFullYear()-25}-06-15`;   // a gentle default
 }
 
+let _welcomeP = null;
+function renderWelcomeMoon(){
+  const now = new Date(); const { p, illum } = moonPhase(now); const name = phaseName(p);
+  _welcomeP = p;
+  const cv = document.getElementById('welcomeMoon'); if (cv) renderMoon(cv, p);
+  const lead = document.getElementById('obWelcomeLead');
+  if (lead){
+    const disp = displayName(name, now), pct = Math.round(illum*100);
+    lead.innerHTML = (name === 'New Moon')
+      ? `Tonight the moon is hidden — a <em>New Moon</em>, the cycle just beginning.`
+      : `Tonight, a <em>${disp}</em> is shining over you, ${pct}% lit.`;
+  }
+}
 function openOnboard(){
   const ob = document.getElementById('onboard');
   document.getElementById('obRevealStage').hidden = true;
-  document.getElementById('obAsk').hidden = false;
+  document.getElementById('obAsk').hidden = true;
+  document.getElementById('obWelcome').hidden = false;
+  renderWelcomeMoon();
   ob.classList.remove('closing');
-  ob.hidden = false;
+  ob.style.display = ''; ob.hidden = false;
+}
+function startBirthAsk(){
+  document.getElementById('obWelcome').hidden = true;
+  document.getElementById('obAsk').hidden = false;
 }
 function closeOnboard(){
   const ob = document.getElementById('onboard');
@@ -1939,10 +2145,10 @@ function closeOnboard(){
   setTimeout(()=>{ ob.hidden = true; ob.classList.remove('closing'); }, 660);
 }
 function revealBirth(){
-  const y = +document.getElementById('obYear').value;
-  const m = +document.getElementById('obMonth').value;
-  const d = +document.getElementById('obDay').value;
-  _pendingBirth = birthData(y, m, d);
+  const v = document.getElementById('obBirthDate').value;
+  if (!v) return;
+  const [y, m, d] = v.split('-').map(Number);
+  _pendingBirth = birthData(y, m - 1, d);
   document.getElementById('obAsk').hidden = true;
   document.getElementById('obRevealStage').hidden = false;   // unhide first so canvas has layout
   _birthP = _pendingBirth.p;
@@ -1950,6 +2156,21 @@ function revealBirth(){
   document.getElementById('obPhase').textContent = _pendingBirth.display;
   document.getElementById('obDate').textContent  = _pendingBirth.dateLabel;
   document.getElementById('obLore').innerHTML = `<span class="lead">${_pendingBirth.lore.lead}</span> ${_pendingBirth.lore.body}`;
+}
+function finishOnboard(){          // "Begin" on the welcome → straight into the app + coach
+  const store = loadStore();
+  store.onboarded = true;
+  saveStore(store);
+  closeOnboard();
+  setTimeout(startCoach, 760);
+}
+function openBirth(){              // the optional birth-moon flow, reached from the Book
+  const ob = document.getElementById('onboard');
+  document.getElementById('obWelcome').hidden = true;
+  document.getElementById('obRevealStage').hidden = true;
+  document.getElementById('obAsk').hidden = false;
+  ob.classList.remove('closing');
+  ob.style.display = ''; ob.hidden = false;
 }
 function keepBirth(){
   const store = loadStore();
@@ -1965,6 +2186,74 @@ function skipOnboard(){
   saveStore(store);
   closeOnboard();
 }
+
+/* ---------------- first-run coach marks ---------------- */
+const COACH_KEY = 'manyMoons.coached';
+const LIBHINT_KEY = 'manyMoons.libHinted';
+function coached(){ try{ return localStorage.getItem(COACH_KEY) === '1'; }catch(e){ return true; } }
+function setCoached(){ try{ localStorage.setItem(COACH_KEY, '1'); }catch(e){} }
+function libHinted(){ try{ return localStorage.getItem(LIBHINT_KEY) === '1'; }catch(e){ return true; } }
+function setLibHinted(){ try{ localStorage.setItem(LIBHINT_KEY, '1'); }catch(e){} }
+let _coachSteps = [], _coachI = 0, _coachDone = null;
+function _clampN(v,a,b){ return v<a?a:(v>b?b:v); }
+function _runCoach(steps, onDone){
+  _coachSteps = steps; _coachI = 0; _coachDone = onDone || null;
+  document.getElementById('coach').hidden = false;
+  showCoachStep();
+}
+// after onboarding: one gentle pointer at the press button (dismissable)
+function startCoach(){
+  if (coached()) return;
+  if (document.body.classList.contains('show-book')) setView('tonight');
+  _runCoach([
+    { sel:'#press', eyebrow:'To begin', view:'tonight', place:'above', text:"Press tonight's moon to keep it — every night you press is saved to your Book." },
+  ], setCoached);
+}
+// the first time the user opens the Book themselves: point out the Library
+function showLibraryHint(){
+  if (libHinted() || !coached()) return;
+  if (!document.body.classList.contains('show-book')) return;
+  if (!document.getElementById('coach').hidden) return;     // a coach is already up
+  _runCoach([
+    { sel:'.seg-btn[data-tab="library"]', eyebrow:'The Library', view:'book', place:'below', text:"Tap Library to explore every kind of moon — the eight phases, the year's full moons, and the rare ones." },
+  ], setLibHinted);
+}
+function showCoachStep(){
+  const s = _coachSteps[_coachI];
+  const inBook = document.body.classList.contains('show-book');
+  if (s.view === 'book' && !inBook){ setView('book'); setTimeout(_placeCoach, 660); return; }
+  if (s.view === 'tonight' && inBook){ setView('tonight'); setTimeout(_placeCoach, 660); return; }
+  _placeCoach();
+}
+function _placeCoach(){
+  const s = _coachSteps[_coachI];
+  const el = document.querySelector(s.sel);
+  if (!el){ nextCoach(); return; }
+  const r = el.getBoundingClientRect();
+  const ring = document.getElementById('coachRing'), pop = document.getElementById('coachPop'), arrow = document.getElementById('coachArrow');
+  const size = Math.max(r.width, r.height) + 22;
+  ring.style.width = size+'px'; ring.style.height = size+'px';
+  ring.style.left = (r.left + r.width/2 - size/2)+'px';
+  ring.style.top  = (r.top + r.height/2 - size/2)+'px';
+  document.getElementById('coachEyebrow').textContent = s.eyebrow;
+  document.getElementById('coachText').textContent = s.text;
+  const dots = document.getElementById('coachDots');
+  dots.textContent = _coachSteps.length > 1 ? `${_coachI+1} of ${_coachSteps.length}` : '';
+  dots.style.display = _coachSteps.length > 1 ? '' : 'none';
+  document.getElementById('coachNext').textContent = (_coachI === _coachSteps.length-1) ? 'Got it' : 'Next';
+  pop.style.visibility = 'hidden'; pop.style.left = '0px'; pop.style.top = '0px';
+  requestAnimationFrame(()=>{
+    const pw = pop.offsetWidth, ph = pop.offsetHeight, vw = window.innerWidth, vh = window.innerHeight, m = 16;
+    let px, py, ax, ay, ch;
+    if (s.place === 'above'){      px = _clampN(r.left + r.width/2 - pw/2, m, vw-pw-m); py = Math.max(r.top - ph - 30, m); ch='▼'; ax = r.left + r.width/2 - 11; ay = r.top - 32; }
+    else if (s.place === 'below'){ px = _clampN(r.left + r.width/2 - pw/2, m, vw-pw-m); py = r.bottom + 30; ch='▲'; ax = r.left + r.width/2 - 11; ay = r.bottom + 4; }
+    else {                          px = Math.max(r.left - pw - 30, m); py = _clampN(r.top + r.height/2 - ph/2, m, vh-ph-m); ch='▶'; ax = r.left - 32; ay = r.top + r.height/2 - 14; }
+    pop.style.left = px+'px'; pop.style.top = py+'px'; pop.style.visibility = 'visible';
+    arrow.textContent = ch; arrow.style.left = ax+'px'; arrow.style.top = ay+'px';
+  });
+}
+function nextCoach(){ _coachI++; if (_coachI >= _coachSteps.length) endCoach(); else showCoachStep(); }
+function endCoach(){ document.getElementById('coach').hidden = true; const cb = _coachDone; _coachDone = null; if (cb) cb(); }
 
 /* ---------------- stars ---------------- */
 function makeStars(){
@@ -1999,9 +2288,18 @@ document.getElementById('press').addEventListener('click', (e)=>{
   const btn = e.currentTarget;
   if (btn.classList.contains('done')) return;
   pressMoon();
+  const n = Object.keys(loadStore().collection).length;
   btn.classList.add('done','blooming');
   btn.addEventListener('animationend', ()=>btn.classList.remove('blooming'), {once:true});
-  document.getElementById('presslabel').textContent = "Pressed · tonight is yours";
+  document.getElementById('presslabel').textContent = `Kept ✦ ${n} ${n===1?'moon':'moons'} in your Book`;
+  playKeepChime(); buzz();
+  if (n === 1 && canAskNotify()){
+    showNotifyPrompt();                       // celebrate the first moon + softly ask for the reminder
+  } else {
+    showToast(n === 1
+      ? "Your first moon, kept. Come back tomorrow for the next →"
+      : `Kept ✦ ${n} moons in your Book →`, true);
+  }
   buildYours();
   updateStreak();
 });
@@ -2015,9 +2313,13 @@ _shareBtn.addEventListener('click', ()=> shareMoonCard(tonightSubject(), _shareB
 const _obShareBtn = document.getElementById('obShare');
 _obShareBtn.addEventListener('click', ()=>{ const s = birthSubject(); if (s) shareMoonCard(s, _obShareBtn); });
 
+document.getElementById('obStart').addEventListener('click', finishOnboard);
 document.getElementById('obReveal').addEventListener('click', revealBirth);
 document.getElementById('obBegin').addEventListener('click', keepBirth);
 document.getElementById('obSkip').addEventListener('click', skipOnboard);
+
+document.getElementById('coachNext').addEventListener('click', nextCoach);
+document.getElementById('coachScrim').addEventListener('click', nextCoach);
 
 document.querySelectorAll('.seg-btn').forEach(b=> b.addEventListener('click', ()=>{
   document.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x===b));
@@ -2032,7 +2334,31 @@ document.querySelectorAll('#themeSeg button').forEach(b=>
 document.querySelectorAll('#remSeg button').forEach(b=>
   b.addEventListener('click', ()=> setReminderPref(b.dataset.rem === 'on')));
 
-document.getElementById('aboutOpen').addEventListener('click', openAbout);
+document.querySelectorAll('#soundSeg button').forEach(b=>
+  b.addEventListener('click', ()=> setSoundPref(b.dataset.sound === 'on')));
+
+document.getElementById('tonightNext').addEventListener('click', ()=>{
+  setView('book');
+  document.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x.dataset.tab==='library'));
+  document.getElementById('tab-yours').hidden = true;
+  document.getElementById('tab-library').hidden = false;
+});
+
+document.getElementById('settingsFab').addEventListener('click', openAbout);
+
+document.getElementById('npYes').addEventListener('click', async ()=>{
+  closeNotifyPrompt();
+  await setReminderPref(true);               // triggers the OS permission prompt (high opt-in, since they chose it)
+  showToast('Nightly reminder on ✦', false);
+});
+document.getElementById('npNo').addEventListener('click', ()=>{
+  closeNotifyPrompt();
+  showToast('Saved to your Book →', true);
+});
+document.getElementById('npScrim').addEventListener('click', ()=>{
+  closeNotifyPrompt();
+  showToast('Saved to your Book →', true);
+});
 document.getElementById('aboutBack').addEventListener('click', closeAbout);
 document.getElementById('exportBtn').addEventListener('click', exportData);
 document.getElementById('resetBtn').addEventListener('click', resetCollection);
@@ -2069,6 +2395,7 @@ window.addEventListener('resize', ()=>{
 applyTheme(getThemePref());
 updateThemeUI(getThemePref());
 updateReminderUI(getReminderPref());
+updateSoundUI(soundOn());
 if (getReminderPref()) scheduleReminders();   // top up the schedule when the app opens (native)
 makeStars();
 buildLibrary();
@@ -2078,6 +2405,7 @@ populateBirthSelects();
 populateLookupSelects();
 buildYours();
 if (!loadStore().onboarded) openOnboard();
+else if (!coached()) setTimeout(startCoach, 800);   // returning user who hasn't seen the walkthrough
 
 initNativeBridge();   // status bar, splash, Android back button (no-op on the web)
 
