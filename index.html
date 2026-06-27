@@ -1551,17 +1551,19 @@ async function shareMoonCard(subject, btn){
   if (btn) btn.classList.add('busy');
   try{
     const cv = await buildCardCanvas(subject);
-    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    // JPEG, not PNG: the card is a photo on a solid bg, so this encodes ~instantly
+    // and is ~10x smaller (PNG was ~1s / 1.8MB) — the share felt laggy because of it
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.92));
     if (!blob) return;
     const text = `${subject.name} · ${subject.dateLabel}`;
     if (await _nativeShareImage(blob, text)) return;          // native sheet on Capacitor
-    const file = new File([blob], 'many-moons.png', { type:'image/png' });
+    const file = new File([blob], 'many-moons.jpg', { type:'image/jpeg' });
     const data = { files:[file], title:'Many Moons', text };
     if (navigator.canShare && navigator.canShare({ files:[file] })){
       try{ await navigator.share(data); return; }catch(e){ if (e && e.name === 'AbortError') return; }
     }
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'many-moons.png';
+    const a = document.createElement('a'); a.href = url; a.download = 'many-moons.jpg';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 5000);
   }catch(e){ /* swallow — sharing is best-effort */ }
@@ -1986,7 +1988,7 @@ async function _nativeShareImage(blob, text){
   if (!Fs || !Sh) return false;
   try{
     const data = await _blobToB64(blob);
-    const w = await Fs.writeFile({ path:`many-moons-${Date.now()}.png`, data, directory:'CACHE' });
+    const w = await Fs.writeFile({ path:`many-moons-${Date.now()}.jpg`, data, directory:'CACHE' });
     await Sh.share({ title:'Many Moons', text, url:w.uri });
     return true;
   }catch(e){ return false; }
