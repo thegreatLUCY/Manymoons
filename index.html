@@ -669,13 +669,15 @@
 
     </div>
 
-    <button class="settings-fab" id="settingsFab" aria-label="Settings">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <circle cx="12" cy="12" r="3.2"/>
-        <path d="M12 2.6v2.4M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12h2.4M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/>
-      </svg>
-    </button>
   </section>
+
+  <!-- settings gear — body-level so position:fixed stays pinned (was inside #book, which is transformed + scrolls) -->
+  <button class="settings-fab" id="settingsFab" aria-label="Settings">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+      <circle cx="12" cy="12" r="3.2"/>
+      <path d="M12 2.6v2.4M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12h2.4M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
 
   <!-- ===================== BOOK TAB ===================== -->
   <button class="book-tab" id="bookTab" aria-label="Your book — swipe left or tap to open">
