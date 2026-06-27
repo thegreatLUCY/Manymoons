@@ -834,9 +834,9 @@
 
       <div class="ob-stage" id="lkRevealStage" hidden>
         <div class="ob-eyebrow">The moon on</div>
+        <div class="ob-date" id="lkDate">—</div>
         <div class="ob-moon-wrap"><div class="halo"></div><canvas id="lookupMoon"></canvas></div>
         <h2 class="ob-phase" id="lkPhase">—</h2>
-        <div class="ob-date" id="lkDate">—</div>
         <div class="lk-illum" id="lkIllum">—</div>
         <p class="ob-lore" id="lkLore">—</p>
         <button class="ob-cta" id="lkShare">Share this moon</button>
@@ -1565,7 +1565,7 @@ function render(){
   const tn = document.getElementById('tonightNext');
   if (tn){
     if (name === 'Full Moon'){
-      tn.innerHTML = `<span class="tn-dot">🌕</span> Tonight is the ${displayName(name, now)} — press to keep it`;
+      tn.innerHTML = `<span class="tn-dot">🌕</span> Tonight is the ${displayName(name, now)}`;
     } else {
       const nf = nextPhaseDate(0.5, Date.now()), nfName = FULL_NAMES[nf.getMonth()], nu = nightsUntil(nf);
       tn.innerHTML = `<span class="tn-dot">✦</span> Next full moon · the ${nfName} · ${nu}`;
