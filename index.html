@@ -731,6 +731,7 @@
             <div class="wheel-band"></div>
           </div>
         </div>
+        <div class="lk-note" id="obNote"></div>
         <button class="ob-cta" id="obReveal">Reveal my moon</button>
         <button class="ob-skip" id="obSkip">Not now</button>
       </div>
@@ -1908,6 +1909,26 @@ function playKeepChime(){
   }catch(e){}
 }
 function buzz(){ try{ if (navigator.vibrate) navigator.vibrate(14); }catch(e){} }
+// a barely-there detent click for the date wheels — felt more than heard
+function playTick(){
+  try{
+    _actx = _actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (_actx.state === 'suspended') _actx.resume();
+    const t = _actx.currentTime;
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = 'triangle'; o.frequency.value = 2050;                 // soft, high woodblock-ish click
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.028, t + 0.004);         // ~4x quieter than the keep-chime
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    o.connect(g).connect(_actx.destination);
+    o.start(t); o.stop(t + 0.035);
+  }catch(e){}
+}
+function wheelTick(){
+  if (!soundOn()) return;                  // courtesy: Sound off silences the wheel (click + haptic)
+  playTick();
+  try{ if (navigator.vibrate) navigator.vibrate(5); }catch(e){}
+}
 function updateSoundUI(on){ document.querySelectorAll('#soundSeg button').forEach(b => b.classList.toggle('active', (b.dataset.sound==='on')===on)); }
 function setSoundPref(on){
   try{ localStorage.setItem(SOUND_KEY, on ? 'on' : 'off'); }catch(e){}
@@ -2081,16 +2102,21 @@ const _WH_ITEM = 40;                                   // must match .wheel-item
 function makeWheel(el, values, initIdx, onSettle){
   initIdx = Math.max(0, Math.min(values.length-1, initIdx));
   el.innerHTML = `<div class="wheel-list">${values.map(v=>`<div class="wheel-item">${v.label}</div>`).join('')}</div>`;
-  el._values = values; el._idx = initIdx;
+  el._values = values; el._idx = initIdx; el._ready = false;
   const items = el.querySelectorAll('.wheel-item');
   let raf=null, settle=null;
   const idxAt = ()=> Math.max(0, Math.min(values.length-1, Math.round(el.scrollTop/_WH_ITEM)));
-  function mark(){ const i=idxAt(); el._idx=i; items.forEach((it,j)=>it.classList.toggle('sel', j===i)); }
+  function mark(){
+    const i=idxAt(), changed=(i!==el._idx);
+    el._idx=i; items.forEach((it,j)=>it.classList.toggle('sel', j===i));
+    if (changed && el._ready) wheelTick();             // one soft click per value crossed
+  }
   el.onscroll = ()=>{
     if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(mark);
     clearTimeout(settle); settle = setTimeout(()=>{ mark(); onSettle && onSettle(el._idx); }, 110);
   };
   el.scrollTop = initIdx*_WH_ITEM; mark();
+  setTimeout(()=>{ el._ready = true; }, 80);            // don't tick during programmatic positioning
 }
 const wheelVal = el => el._values[el._idx].value;
 // build a day/month/year wheel group inside `root`; exposes root._get() → {y,m,d}
@@ -2119,6 +2145,7 @@ function initLookupWheels(){
 }
 function initBirthWheels(){
   const now=new Date();
+  const n=document.getElementById('obNote'); if(n) n.textContent='';
   buildDateWheels(document.getElementById('obWheels'),
     { y:now.getFullYear()-25, m:5, d:15 }, 1920, now.getFullYear());
 }
@@ -2136,7 +2163,7 @@ function revealLookup(){
   const picked = new Date(y, m, Math.min(d, dim), 12, 0, 0);
   const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
   if (picked > todayEnd){                            // past only — that night hasn't happened
-    document.getElementById('lkNote').textContent = "That night hasn’t come yet — choose a date in the past.";
+    document.getElementById('lkNote').textContent = "The future keeps its moons to itself. Try a night that’s already been.";
     return;
   }
   const data = birthData(y, m, d);                 // generic date→moon; nothing is stored or collected
@@ -2203,6 +2230,14 @@ function closeOnboard(){
 }
 function revealBirth(){
   const { y, m, d } = document.getElementById('obWheels')._get();   // m is already 0-based
+  const dim = new Date(y, m+1, 0).getDate();
+  const picked = new Date(y, m, Math.min(d, dim), 12, 0, 0);
+  const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
+  if (picked > todayEnd){                            // no future birthdays
+    document.getElementById('obNote').textContent = "No one’s born beneath tomorrow’s moon — try a night that’s already been.";
+    return;
+  }
+  document.getElementById('obNote').textContent = '';
   _pendingBirth = birthData(y, m, d);
   document.getElementById('obAsk').hidden = true;
   document.getElementById('obRevealStage').hidden = false;   // unhide first so canvas has layout
