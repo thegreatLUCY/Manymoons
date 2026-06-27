@@ -2323,12 +2323,12 @@ document.getElementById('obSkip').addEventListener('click', skipOnboard);
 document.getElementById('coachNext').addEventListener('click', nextCoach);
 document.getElementById('coachScrim').addEventListener('click', nextCoach);
 
-document.querySelectorAll('.seg-btn').forEach(b=> b.addEventListener('click', ()=>{
-  document.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x===b));
-  const tab = b.dataset.tab;
+function setTab(tab){
+  document.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x.dataset.tab===tab));
   document.getElementById('tab-yours').hidden   = tab !== 'yours';
   document.getElementById('tab-library').hidden = tab !== 'library';
-}));
+}
+document.querySelectorAll('.seg-btn').forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
 
 document.querySelectorAll('#themeSeg button').forEach(b=>
   b.addEventListener('click', ()=> setThemePref(b.dataset.themePref)));
@@ -2340,10 +2340,7 @@ document.querySelectorAll('#soundSeg button').forEach(b=>
   b.addEventListener('click', ()=> setSoundPref(b.dataset.sound === 'on')));
 
 document.getElementById('tonightNext').addEventListener('click', ()=>{
-  setView('book');
-  document.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x.dataset.tab==='library'));
-  document.getElementById('tab-yours').hidden = true;
-  document.getElementById('tab-library').hidden = false;
+  setView('book'); setTab('library');
 });
 
 document.getElementById('settingsFab').addEventListener('click', openAbout);
@@ -2375,14 +2372,25 @@ document.getElementById('lkAgain').addEventListener('click', openLookup);
 const _lkShareBtn = document.getElementById('lkShare');
 _lkShareBtn.addEventListener('click', ()=>{ if (_lookupSubject) shareMoonCard(_lookupSubject, _lkShareBtn); });
 
-// swipe between views
-let _tx = null;
-addEventListener('touchstart', e=>{ _tx = e.touches[0].clientX; }, {passive:true});
+// swipe between views and, inside the Book, between its tabs.
+// horizontal flow:  Tonight  <->  Your Moons  <->  Library
+let _tx = null, _ty = null;
+addEventListener('touchstart', e=>{ _tx = e.touches[0].clientX; _ty = e.touches[0].clientY; }, {passive:true});
 addEventListener('touchend', e=>{
   if (_tx === null) return;
-  const dx = e.changedTouches[0].clientX - _tx; _tx = null;
-  if (dx < -60) setView('book');
-  else if (dx > 60) setView('tonight');
+  const dx = e.changedTouches[0].clientX - _tx;
+  const dy = e.changedTouches[0].clientY - _ty;
+  _tx = _ty = null;
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;  // ignore taps & vertical scrolls
+  const inBook    = document.body.classList.contains('show-book');
+  const onLibrary = !document.getElementById('tab-library').hidden;
+  if (dx < 0){                                  // swipe left  →
+    if (!inBook) setView('book');               //   Tonight → Your Moons
+    else if (!onLibrary) setTab('library');     //   Your Moons → Library
+  } else {                                       // swipe right →
+    if (inBook && onLibrary) setTab('yours');   //   Library → Your Moons
+    else setView('tonight');                     //   Your Moons / Tonight → Tonight
+  }
 }, {passive:true});
 
 // debounce + width-gate: avoids re-rendering the (expensive) moon on every
