@@ -560,6 +560,23 @@
   .ob-dateinput:focus{ outline:none; border-bottom-color:var(--ink-soft); }
   .ob-dateinput::-webkit-calendar-picker-indicator{ filter:invert(.65); cursor:pointer; }
 
+  /* themed glass date wheels — replaces the native selects / date input */
+  .wheelpick{ width:100%; max-width:330px; margin:32px auto 0; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .72s forwards; }
+  .wheel-heads{ display:flex; margin-bottom:9px; }
+  .wheel-heads span{ flex:1; text-align:center; font-family:var(--sans); font-weight:300; font-size:9px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); }
+  .wheel-cols{ position:relative; display:flex; padding:6px; border-radius:18px; background:var(--glass-strong); border:1px solid var(--hair); box-shadow:0 14px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05); overflow:hidden; }
+  .wheel{ flex:1; height:190px; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; position:relative; z-index:2;
+    -webkit-mask-image:linear-gradient(transparent 2%, #000 30%, #000 70%, transparent 98%); mask-image:linear-gradient(transparent 2%, #000 30%, #000 70%, transparent 98%); }
+  .wheel::-webkit-scrollbar{ display:none; }
+  .wheel-list{ padding:75px 0; }                 /* (190 − 40) / 2, so first & last items can reach centre */
+  .wheel-item{ height:40px; display:flex; align-items:center; justify-content:center; scroll-snap-align:center;
+    font-family:var(--serif); font-weight:400; font-size:19px; line-height:1; color:var(--ink-faint);
+    transition:color .22s ease, transform .22s ease; -webkit-tap-highlight-color:transparent; }
+  .wheel-item.sel{ color:#cdbd86; transform:scale(1.16); }
+  .wheel-band{ position:absolute; left:8px; right:8px; top:50%; height:40px; transform:translateY(-50%); border-radius:9px; pointer-events:none; z-index:1;
+    border-top:1px solid rgba(205,189,134,.30); border-bottom:1px solid rgba(205,189,134,.30);
+    background:linear-gradient(rgba(205,189,134,.05), rgba(205,189,134,.12), rgba(205,189,134,.05)); }
+
   .ob-cta{
     margin-top:42px; background:none; cursor:pointer;
     border:1px solid var(--hair); border-radius:999px;
@@ -705,8 +722,14 @@
         <div class="ob-mark">Many Moons</div>
         <h2 class="ob-title">Every life begins<br>beneath a moon.</h2>
         <p class="ob-lead">Tell me the night you were born, and I’ll show you the moon that hung above it.</p>
-        <div class="ob-fields">
-          <label class="ob-field wide"><span>Your birth date</span><input type="date" id="obBirthDate" class="ob-dateinput" aria-label="Birth date" /></label>
+        <div class="wheelpick" id="obWheels">
+          <div class="wheel-heads"><span>Day</span><span>Month</span><span>Year</span></div>
+          <div class="wheel-cols">
+            <div class="wheel" data-w="day" aria-label="Day"></div>
+            <div class="wheel" data-w="month" aria-label="Month"></div>
+            <div class="wheel" data-w="year" aria-label="Year"></div>
+            <div class="wheel-band"></div>
+          </div>
         </div>
         <button class="ob-cta" id="obReveal">Reveal my moon</button>
         <button class="ob-skip" id="obSkip">Not now</button>
@@ -823,10 +846,14 @@
         <div class="ob-mark">Many Moons</div>
         <h2 class="ob-title">Any night,<br>any moon.</h2>
         <p class="ob-lead">Choose a date — a birthday, an anniversary, a night you remember — and see the moon that hung above it.</p>
-        <div class="ob-fields">
-          <label class="ob-field"><span>Day</span><select id="lkDay" aria-label="Day"></select></label>
-          <label class="ob-field"><span>Month</span><select id="lkMonth" aria-label="Month"></select></label>
-          <label class="ob-field"><span>Year</span><select id="lkYear" aria-label="Year"></select></label>
+        <div class="wheelpick" id="lkWheels">
+          <div class="wheel-heads"><span>Day</span><span>Month</span><span>Year</span></div>
+          <div class="wheel-cols">
+            <div class="wheel" data-w="day" aria-label="Day"></div>
+            <div class="wheel" data-w="month" aria-label="Month"></div>
+            <div class="wheel" data-w="year" aria-label="Year"></div>
+            <div class="wheel-band"></div>
+          </div>
         </div>
         <button class="ob-cta" id="lkReveal">Show this moon</button>
         <div class="lk-note" id="lkNote"></div>
@@ -2049,23 +2076,62 @@ function resetCollection(){
 
 /* ---------------- any-date lookup (view & share only — never collects) ---------------- */
 let _lookupSubject = null;
-function populateLookupSelects(){
-  const dsel=document.getElementById('lkDay'), msel=document.getElementById('lkMonth'), ysel=document.getElementById('lkYear');
-  const now=new Date(), cy=now.getFullYear();
-  dsel.innerHTML = Array.from({length:31}, (_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
-  msel.innerHTML = MON.map((nm,i)=>`<option value="${i}">${nm}</option>`).join('');
-  let ys=''; for (let y=cy; y>=1900; y--) ys += `<option value="${y}">${y}</option>`; ysel.innerHTML = ys;  // past only
-  dsel.value=String(now.getDate()); msel.value=String(now.getMonth()); ysel.value=String(cy);
+/* ----- themed scroll-wheel date picker (snap-based, touch-native, offline) ----- */
+const _WH_ITEM = 40;                                   // must match .wheel-item height
+function makeWheel(el, values, initIdx, onSettle){
+  initIdx = Math.max(0, Math.min(values.length-1, initIdx));
+  el.innerHTML = `<div class="wheel-list">${values.map(v=>`<div class="wheel-item">${v.label}</div>`).join('')}</div>`;
+  el._values = values; el._idx = initIdx;
+  const items = el.querySelectorAll('.wheel-item');
+  let raf=null, settle=null;
+  const idxAt = ()=> Math.max(0, Math.min(values.length-1, Math.round(el.scrollTop/_WH_ITEM)));
+  function mark(){ const i=idxAt(); el._idx=i; items.forEach((it,j)=>it.classList.toggle('sel', j===i)); }
+  el.onscroll = ()=>{
+    if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(mark);
+    clearTimeout(settle); settle = setTimeout(()=>{ mark(); onSettle && onSettle(el._idx); }, 110);
+  };
+  el.scrollTop = initIdx*_WH_ITEM; mark();
+}
+const wheelVal = el => el._values[el._idx].value;
+// build a day/month/year wheel group inside `root`; exposes root._get() → {y,m,d}
+function buildDateWheels(root, init, minYear, maxYear){
+  const dEl=root.querySelector('[data-w="day"]'), mEl=root.querySelector('[data-w="month"]'), yEl=root.querySelector('[data-w="year"]');
+  const months = MON.map((nm,i)=>({label:nm.slice(0,3), value:i}));
+  const years=[]; for (let y=maxYear; y>=minYear; y--) years.push({label:String(y), value:y});
+  const daysIn = (y,m)=> new Date(y, m+1, 0).getDate();
+  const dayVals = (y,m)=> Array.from({length:daysIn(y,m)}, (_,i)=>({label:String(i+1), value:i+1}));
+  const cur = { y:init.y, m:init.m, d:init.d };
+  function rebuildDays(){                               // keep day column honest as month/year change
+    const n = daysIn(cur.y, cur.m);
+    if (dEl._values && dEl._values.length === n) return;
+    cur.d = Math.min(cur.d, n);
+    makeWheel(dEl, dayVals(cur.y, cur.m), cur.d-1, i=>{ cur.d = dEl._values[i].value; });
+  }
+  makeWheel(yEl, years,  years.findIndex(o=>o.value===cur.y), i=>{ cur.y = yEl._values[i].value; rebuildDays(); });
+  makeWheel(mEl, months, cur.m,                              i=>{ cur.m = mEl._values[i].value; rebuildDays(); });
+  makeWheel(dEl, dayVals(cur.y,cur.m), cur.d-1,              i=>{ cur.d = dEl._values[i].value; });
+  root._get = ()=> ({ y:wheelVal(yEl), m:wheelVal(mEl), d:wheelVal(dEl) });
+}
+function initLookupWheels(){
+  const now=new Date();
+  buildDateWheels(document.getElementById('lkWheels'),
+    { y:now.getFullYear(), m:now.getMonth(), d:now.getDate() }, 1900, now.getFullYear());
+}
+function initBirthWheels(){
+  const now=new Date();
+  buildDateWheels(document.getElementById('obWheels'),
+    { y:now.getFullYear()-25, m:5, d:15 }, 1920, now.getFullYear());
 }
 function openLookup(){
   const note=document.getElementById('lkNote'); if(note) note.textContent='';
   document.getElementById('lkAsk').hidden = false;
   document.getElementById('lkRevealStage').hidden = true;
   document.getElementById('lookup').hidden = false;
+  initLookupWheels();                                  // build after visible so scroll positions take
 }
 function closeLookup(){ document.getElementById('lookup').hidden = true; }
 function revealLookup(){
-  const y=+document.getElementById('lkYear').value, m=+document.getElementById('lkMonth').value, d=+document.getElementById('lkDay').value;
+  const { y, m, d } = document.getElementById('lkWheels')._get();
   const dim = new Date(y, m+1, 0).getDate();
   const picked = new Date(y, m, Math.min(d, dim), 12, 0, 0);
   const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
@@ -2102,13 +2168,6 @@ function birthData(y, m, d){                       // m: 0-based month
   };
 }
 
-function populateBirthSelects(){
-  const di = document.getElementById('obBirthDate'); if (!di) return;
-  const now = new Date(), pad = n => String(n).padStart(2,'0');
-  di.max = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;   // no future birthdays
-  di.min = '1920-01-01';
-  di.value = `${now.getFullYear()-25}-06-15`;   // a gentle default
-}
 
 let _welcomeP = null;
 function renderWelcomeMoon(){
@@ -2135,6 +2194,7 @@ function openOnboard(){
 function startBirthAsk(){
   document.getElementById('obWelcome').hidden = true;
   document.getElementById('obAsk').hidden = false;
+  initBirthWheels();
 }
 function closeOnboard(){
   const ob = document.getElementById('onboard');
@@ -2142,10 +2202,8 @@ function closeOnboard(){
   setTimeout(()=>{ ob.hidden = true; ob.classList.remove('closing'); }, 660);
 }
 function revealBirth(){
-  const v = document.getElementById('obBirthDate').value;
-  if (!v) return;
-  const [y, m, d] = v.split('-').map(Number);
-  _pendingBirth = birthData(y, m - 1, d);
+  const { y, m, d } = document.getElementById('obWheels')._get();   // m is already 0-based
+  _pendingBirth = birthData(y, m, d);
   document.getElementById('obAsk').hidden = true;
   document.getElementById('obRevealStage').hidden = false;   // unhide first so canvas has layout
   _birthP = _pendingBirth.p;
@@ -2168,6 +2226,7 @@ function openBirth(){              // the optional birth-moon flow, reached from
   document.getElementById('obAsk').hidden = false;
   ob.classList.remove('closing');
   ob.style.display = ''; ob.hidden = false;
+  initBirthWheels();
 }
 function keepBirth(){
   const store = loadStore();
@@ -2406,8 +2465,6 @@ makeStars();
 buildLibrary();
 render();
 reflectPressed();
-populateBirthSelects();
-populateLookupSelects();
 buildYours();
 if (!loadStore().onboarded) openOnboard();
 else if (!coached()) setTimeout(startCoach, 800);   // returning user who hasn't seen the walkthrough
