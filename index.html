@@ -1557,14 +1557,9 @@ function render(){
   document.getElementById('date').textContent = fmtDate(now);
   document.getElementById('phase').textContent = displayName(name, now);
 
+  // just the illumination here — the next-full countdown lives in the chip above, no need to say it twice
   const pct = Math.round(illum * 100);
-  // plain-language state (so a moon novice understands what's happening)
-  let human;
-  if (name === 'New Moon') human = 'new moon tonight';
-  else if (name === 'Full Moon') human = 'full moon tonight';
-  else if (p < 0.5){ const n = nightsUntil(nextPhaseDate(0.5, Date.now())); human = (n==='tonight') ? 'full tonight' : 'full ' + n; }
-  else { const n = nightsUntil(nextPhaseDate(0, Date.now())); human = (n==='tonight') ? 'new tonight' : 'new ' + n; }
-  document.getElementById('illum').textContent = `${pct}% lit · ${human}`;
+  document.getElementById('illum').textContent = `${pct}% lit`;
 
   // next-full-moon anticipation + entry to the collection (a reason to return)
   const tn = document.getElementById('tonightNext');
@@ -2084,7 +2079,7 @@ function revealLookup(){
   renderMoon(document.getElementById('lookupMoon'), data.p);
   document.getElementById('lkPhase').textContent = data.display;
   document.getElementById('lkDate').textContent  = data.dateLabel;
-  document.getElementById('lkIllum').textContent = `${Math.round(data.illum*100)}% illuminated`;
+  document.getElementById('lkIllum').textContent = `${Math.round(data.illum*100)}% lit`;
   document.getElementById('lkLore').innerHTML = `<span class="lead">${data.lore.lead}</span> ${data.lore.body}`;
   _lookupSubject = { p:data.p, name:data.display, dateLabel:data.dateLabel, illum:Math.round(data.illum*100), lead:data.lore.lead, eyebrow:'The moon on' };
 }
