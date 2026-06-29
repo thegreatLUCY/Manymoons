@@ -2022,9 +2022,10 @@ async function scheduleReminders(){           // schedule the next 30 nights, ea
   const ln = _capLN(); if (!ln) return false;
   try{
     await ln.cancel({ notifications:_reminderIds() });
-    const list = [];
-    for (let i=1;i<=30;i++){
+    const list = [], nowT = Date.now();
+    for (let i=0;i<30;i++){                       // start today, not tomorrow
       const d = new Date(); d.setDate(d.getDate()+i); d.setHours(REMINDER_HOUR,0,0,0);
+      if (d.getTime() <= nowT) continue;          // skip today's 8pm if it's already passed
       const { title, body } = moonNotification(d);
       list.push({ id:9000+i, title, body, schedule:{ at:d } });
     }
