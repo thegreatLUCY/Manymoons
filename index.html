@@ -127,6 +127,7 @@
     height:100%; max-width:480px; margin:0 auto;
     display:flex; flex-direction:column; align-items:center;
     padding:calc(env(safe-area-inset-top) + 30px) 30px calc(env(safe-area-inset-bottom) + 26px);
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
   }
 
   .nav-book{
@@ -174,7 +175,7 @@
 
   .moon-stage{ flex:1 1 auto; width:100%; display:flex; align-items:center; justify-content:center; position:relative; }
   .moon-wrap{
-    position:relative; width:min(66vw,290px); aspect-ratio:1/1;
+    position:relative; width:min(66vw,290px,35svh); aspect-ratio:1/1;
     opacity:0; animation:moonIn 2.2s cubic-bezier(.2,.7,.2,1) .35s forwards;
   }
   .halo{
@@ -199,11 +200,11 @@
     font-family:var(--sans); font-weight:300;
     font-size:10.5px; letter-spacing:.32em; text-transform:uppercase; color:var(--ink-faint); padding-left:.32em;
   }
-  .rule{ width:34px; height:1px; margin:24px auto 22px; background:linear-gradient(90deg,transparent,var(--ink-soft),transparent); opacity:.5; }
-  .lore{ font-weight:400; font-size:19.5px; line-height:1.62; color:var(--lore-ink); max-width:30ch; margin:0 auto; text-wrap:balance; }
+  .rule{ width:34px; height:1px; margin:18px auto 16px; background:linear-gradient(90deg,transparent,var(--ink-soft),transparent); opacity:.5; }
+  .lore{ font-weight:400; font-size:clamp(14.5px,4vw,19.5px); line-height:1.58; color:var(--lore-ink); max-width:30ch; margin:0 auto; text-wrap:balance; }
   .lore .lead{font-style:italic; color:var(--lore-lead);}
   .credit{
-    margin-top:18px;
+    margin-top:12px;
     font-family:var(--sans); font-weight:300; font-style:normal;
     font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint);
   }
@@ -422,7 +423,7 @@
   .lk-illum{ font-family:var(--sans); font-weight:300; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:#cdbd86; margin-top:10px; padding-left:.3em; opacity:0; animation:rise 1.2s cubic-bezier(.2,.7,.2,1) .7s forwards; }
 
   @media (max-height:680px){
-    .phase{font-size:30px;} .lore{font-size:18px;} .moon-wrap{width:min(54vw,230px);}
+    .phase{font-size:30px;} .moon-wrap{width:min(54vw,230px);}
   }
 
   /* honor reduced-motion: keep everything legible & in final state, drop the motion */
